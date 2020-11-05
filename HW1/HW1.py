@@ -106,16 +106,16 @@ class DiseaseSpreading:
                 found_a_way = True
 
     def move_agents(self):
-        agent_should_move = self.neumann_probability()
-        if agent_should_move:
-            for i in range(self.nr_agents):
+        for i in range(self.nr_agents):
+            agent_should_move = self.neumann_probability()
+            agent_should_infect = self.infection_probability()
+            agent_should_recover = self.recovery_probability()
+            if agent_should_move:
                 self.move_agent(i)
-                agent_should_infect = self.infection_probability()
-                agent_should_recover = self.recovery_probability()
-                if agent_should_infect:
-                    self.infect_susceptibles(i)
-                if agent_should_recover:
-                    self.recover_agent(i)
+            if agent_should_infect:
+                self.infect_susceptibles(i)
+            if agent_should_recover:
+                self.recover_agent(i)
 
 def main():
     dis = DiseaseSpreading(time_steps=1000, nr_agents=1000, grid_length=100, diffusion_rate=0.8, infection_rate=0.6, recovery_rate=0.01)

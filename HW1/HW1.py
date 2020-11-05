@@ -13,7 +13,8 @@ class DiseaseSpreading:
     def draw_agents(self):
         plt.scatter(self.x, self.y)
         plt.draw()
-        plt.pause(0.5)
+        plt.pause(0.001)
+        plt.clf()
 
     def neumann_probability(self):
         r = rnd.uniform(0, 1)
@@ -47,8 +48,8 @@ class DiseaseSpreading:
 
 def main():
     dis = DiseaseSpreading(nr_agents=1000, grid_size=100, diffusion_rate=0.1)
-    #dis.draw_agents()
-    dis.move_agents()
-    dis.draw_agents()
+    while(1):
+        dis.draw_agents()
+        dis.move_agents()
 
 main()

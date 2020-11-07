@@ -16,11 +16,11 @@ class DiseaseSpreading:
         self.infected = 0
         self.recovered = 0
 
-    def initialize_agents(self):
+    def initialize_agents(self, distribution_index=0.9):
         self.susceptible = np.ones((self.nr_agents, 1))  
-        self.susceptible[int(0.9 * self.nr_agents) : self.nr_agents] = 0    # Initially, 90% of agents are susceptible.
+        self.susceptible[int(distribution_index * self.nr_agents) : self.nr_agents] = 0    # Initially, 90% of agents are susceptible.
         self.infected = np.zeros((self.nr_agents, 1))    
-        self.infected[int(0.9 * self.nr_agents) : self.nr_agents] = 1       # Initially, 10% of agents are infected.
+        self.infected[int(distribution_index * self.nr_agents) : self.nr_agents] = 1       # Initially, 10% of agents are infected.
         self.recovered = np.zeros((self.nr_agents, 1))    # Initially, no agents have recovered.
 
     def initialize_agents_at_center(self):
@@ -28,18 +28,13 @@ class DiseaseSpreading:
         self.susceptible = np.ones((self.nr_agents, 1))
         self.infected = np.zeros((self.nr_agents, 1))
         self.recovered = np.zeros((self.nr_agents, 1))
-
-        agents_at_center = list()
+        
         for x in range(int(2*self.grid_length/5), int(3*self.grid_length/5)):
             for y in range(int(2*self.grid_length/5), int(3*self.grid_length/5)):
                 agent_index = self.get_agent_index(x, y)
                 if agent_index != -1:
-                    agents_at_center.append(agent_index)
-                
-        for agent in agents_at_center:
-            self.susceptible[agent] = 0
-            self.infected[agent] = 1            
-        
+                    self.susceptible[agent_index] = 0
+                    self.infected[agent_index] = 1          
 
     def draw_agents(self, current_time, DRAW_PATH=False):
         sus_index = np.where(self.susceptible == 1)[0]

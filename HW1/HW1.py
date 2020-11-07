@@ -49,6 +49,8 @@ class DiseaseSpreading:
             plt.scatter(self.x[sus_index], self.y[sus_index], color='blue', label='Susceptible')
             plt.scatter(self.x[inf_index], self.y[inf_index], color='red', label='Infected')
             plt.scatter(self.x[rec_index], self.y[rec_index], color='green', label='Recovered')
+            #for i in range(len(inf_index)):        DEBUG
+            #    plt.text(self.x[inf_index[i]], self.y[inf_index[i]], str(self.get_agent_index(self.x[inf_index[i]], self.y[inf_index[i]])))
         plt.axis([-2, self.grid_length + 2, -2, self.grid_length + 2])
         plt.title("Diffusion Rate = " + str(self.d) + "      Infection Rate = " + str(self.beta) + "     Recovery Rate = " + str(self.gamma) + 
                     "\nSusceptible = " + str(sum(self.susceptible)[0]) + "      Infected = " + str(sum(self.infected)[0]) + "     Recovered = " + str(sum(self.recovered)[0]) 
@@ -86,39 +88,42 @@ class DiseaseSpreading:
     
     def infect_susceptibles(self, i):
         
-        if self.infected[i]:
+        if self.infected[i] == 1:
 
             if i < self.nr_agents-1:
 
                 agent_index_1 = self.get_agent_index(self.x[i] + 1, self.y[i])
                 agent_index_2 = self.get_agent_index(self.x[i], self.y[i] + 1)
+
+                if agent_index_1 != -1 and agent_index_2 != -1:
             
-                if self.susceptible[agent_index_1] == 1:
-                    self.susceptible[agent_index_1] = 0
-                    self.infected[agent_index_1] = 1
-                
-                if self.susceptible[agent_index_2]  == 1:
-                    self.susceptible[agent_index_2]  = 0
-                    self.infected[agent_index_2] = 1
+                    if self.susceptible[agent_index_1] == 1:
+                        self.susceptible[agent_index_1] = 0
+                        self.infected[agent_index_1] = 1
+                    
+                    if self.susceptible[agent_index_2]  == 1:
+                        self.susceptible[agent_index_2]  = 0
+                        self.infected[agent_index_2] = 1
 
             if i > 0:
 
                 agent_index_3 = self.get_agent_index(self.x[i] - 1, self.y[i])
                 agent_index_4 = self.get_agent_index(self.x[i], self.y[i] - 1)
 
-                if self.susceptible[agent_index_3] == 1:
-                    self.susceptible[agent_index_3] = 0
-                    self.infected[agent_index_3] = 1
-                
-                if self.susceptible[agent_index_4] == 1:
-                    self.susceptible[agent_index_4] = 0
-                    self.infected[agent_index_4] = 1
+                if agent_index_3 != -1 and agent_index_4 != -1:
+
+                    if self.susceptible[agent_index_3] == 1:
+                        self.susceptible[agent_index_3] = 0
+                        self.infected[agent_index_3] = 1
+                    
+                    if self.susceptible[agent_index_4] == 1:
+                        self.susceptible[agent_index_4] = 0
+                        self.infected[agent_index_4] = 1
 
     def recover_agent(self, i):
             if self.infected[i]:
                 self.infected[i] = 0
                 self.recovered[i] = 1
-
 
     def move_agent(self, i):
         found_a_way = False
@@ -137,7 +142,7 @@ class DiseaseSpreading:
                 self.y[i] -= 1
                 found_a_way = True
 
-    def move_agents(self):
+    def step(self):
         for i in range(self.nr_agents):
             agent_should_move = self.neumann_probability()
             agent_should_infect = self.infection_probability()
@@ -160,7 +165,7 @@ def task1_3():
     dis.initialize_agents_at_center()
     while(time_step < dis.time_steps and not stop):
         dis.draw_agents(current_time=time_step)
-        dis.move_agents()
+        dis.step()
         nr_sus[time_step] = sum(dis.susceptible)
         nr_inf[time_step] = sum(dis.infected)
         nr_rec[time_step] = sum(dis.recovered)
@@ -188,7 +193,7 @@ def task1_1():
     dis.initialize_agents()
     while(time_step < dis.time_steps and not stop):
         dis.draw_agents(DRAW_PATH=True, current_time=time_step)
-        dis.move_agents()
+        dis.step()
         nr_sus[time_step] = sum(dis.susceptible)
         nr_inf[time_step] = sum(dis.infected)
         nr_rec[time_step] = sum(dis.recovered)
@@ -206,7 +211,7 @@ def task1_2():
     dis.initialize_agents()
     while(time_step < dis.time_steps and not stop):
         dis.draw_agents(current_time=time_step)
-        dis.move_agents()
+        dis.step()
         nr_sus[time_step] = sum(dis.susceptible)
         nr_inf[time_step] = sum(dis.infected)
         nr_rec[time_step] = sum(dis.recovered)

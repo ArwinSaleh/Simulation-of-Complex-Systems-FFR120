@@ -95,12 +95,12 @@ class DiseaseSpreading:
                 agent_index_1 = self.get_agent_index(self.x[i] + 1, self.y[i])
                 agent_index_2 = self.get_agent_index(self.x[i], self.y[i] + 1)
 
-                if agent_index_1 != -1 and agent_index_2 != -1:
-            
+                if agent_index_1 != -1:
                     if self.susceptible[agent_index_1] == 1:
                         self.susceptible[agent_index_1] = 0
                         self.infected[agent_index_1] = 1
-                    
+
+                if agent_index_2 != -1:
                     if self.susceptible[agent_index_2]  == 1:
                         self.susceptible[agent_index_2]  = 0
                         self.infected[agent_index_2] = 1
@@ -110,12 +110,12 @@ class DiseaseSpreading:
                 agent_index_3 = self.get_agent_index(self.x[i] - 1, self.y[i])
                 agent_index_4 = self.get_agent_index(self.x[i], self.y[i] - 1)
 
-                if agent_index_3 != -1 and agent_index_4 != -1:
-
+                if agent_index_3 != -1:
                     if self.susceptible[agent_index_3] == 1:
                         self.susceptible[agent_index_3] = 0
                         self.infected[agent_index_3] = 1
-                    
+                
+                if agent_index_4 != -1:
                     if self.susceptible[agent_index_4] == 1:
                         self.susceptible[agent_index_4] = 0
                         self.infected[agent_index_4] = 1

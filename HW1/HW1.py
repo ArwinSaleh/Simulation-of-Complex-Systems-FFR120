@@ -156,38 +156,38 @@ class DiseaseSpreading:
 
 
 def task1_1():
-    dis = DiseaseSpreading(time_steps=1000, nr_agents=1, grid_length=100, diffusion_rate=0.8, infection_rate=0.6, recovery_rate=0.01)
+    SIR = DiseaseSpreading(time_steps=1000, nr_agents=1, grid_length=100, diffusion_rate=0.8, infection_rate=0.6, recovery_rate=0.01)
     time_step = 0
-    nr_sus = np.zeros((dis.time_steps, 1))
-    nr_inf = np.zeros((dis.time_steps, 1))
-    nr_rec = np.zeros((dis.time_steps, 1))
-    time = np.zeros((dis.time_steps, 1))
+    nr_sus = np.zeros((SIR.time_steps, 1))
+    nr_inf = np.zeros((SIR.time_steps, 1))
+    nr_rec = np.zeros((SIR.time_steps, 1))
+    time = np.zeros((SIR.time_steps, 1))
     stop = False
-    dis.initialize_agents()
-    while(time_step < dis.time_steps and not stop):
-        dis.draw_agents(DRAW_PATH=True, current_time=time_step)
-        dis.step()
-        nr_sus[time_step] = sum(dis.susceptible)
-        nr_inf[time_step] = sum(dis.infected)
-        nr_rec[time_step] = sum(dis.recovered)
+    SIR.initialize_agents()
+    while(time_step < SIR.time_steps and not stop):
+        SIR.draw_agents(DRAW_PATH=True, current_time=time_step)
+        SIR.step()
+        nr_sus[time_step] = sum(SIR.susceptible)
+        nr_inf[time_step] = sum(SIR.infected)
+        nr_rec[time_step] = sum(SIR.recovered)
         time[time_step] = time_step
         time_step += 1
 
 def task1_2():
-    dis = DiseaseSpreading(time_steps=1000, nr_agents=10, grid_length=10, diffusion_rate=0.8, infection_rate=0.6, recovery_rate=0.01)
+    SIR = DiseaseSpreading(time_steps=1000, nr_agents=10, grid_length=10, diffusion_rate=0.8, infection_rate=0.6, recovery_rate=0.01)
     time_step = 0
-    nr_sus = np.zeros((dis.time_steps, 1))
-    nr_inf = np.zeros((dis.time_steps, 1))
-    nr_rec = np.zeros((dis.time_steps, 1))
-    time = np.zeros((dis.time_steps, 1))
+    nr_sus = np.zeros((SIR.time_steps, 1))
+    nr_inf = np.zeros((SIR.time_steps, 1))
+    nr_rec = np.zeros((SIR.time_steps, 1))
+    time = np.zeros((SIR.time_steps, 1))
     stop = False
-    dis.initialize_agents()
-    while(time_step < dis.time_steps and not stop):
-        dis.draw_agents(current_time=time_step)
-        dis.step()
-        nr_sus[time_step] = sum(dis.susceptible)
-        nr_inf[time_step] = sum(dis.infected)
-        nr_rec[time_step] = sum(dis.recovered)
+    SIR.initialize_agents()
+    while(time_step < SIR.time_steps and not stop):
+        SIR.draw_agents(current_time=time_step)
+        SIR.step()
+        nr_sus[time_step] = sum(SIR.susceptible)
+        nr_inf[time_step] = sum(SIR.infected)
+        nr_rec[time_step] = sum(SIR.recovered)
         time[time_step] = time_step
         time_step += 1
     plt.figure()
@@ -197,24 +197,24 @@ def task1_2():
     plt.ylabel('Number of agents')
     plt.xlabel('Time Steps')
     plt.legend()
-    plt.title("Diffusion Rate = " + str(dis.d) + "      Infection Rate = " + str(dis.beta) + "     Recovery Rate = " + str(dis.gamma))
+    plt.title("Diffusion Rate = " + str(SIR.d) + "      Infection Rate = " + str(SIR.beta) + "     Recovery Rate = " + str(SIR.gamma))
     plt.show()
 
 def task1_3():
-    dis = DiseaseSpreading(time_steps=1000, nr_agents=1000, grid_length=100, diffusion_rate=0.8, infection_rate=0.6, recovery_rate=0.01)
+    SIR = DiseaseSpreading(time_steps=1000, nr_agents=1000, grid_length=100, diffusion_rate=0.4, infection_rate=0.3, recovery_rate=0.1)
     time_step = 0
-    nr_sus = np.zeros((dis.time_steps, 1))
-    nr_inf = np.zeros((dis.time_steps, 1))
-    nr_rec = np.zeros((dis.time_steps, 1))
-    time = np.zeros((dis.time_steps, 1))
+    nr_sus = np.zeros((SIR.time_steps, 1))
+    nr_inf = np.zeros((SIR.time_steps, 1))
+    nr_rec = np.zeros((SIR.time_steps, 1))
+    time = np.zeros((SIR.time_steps, 1))
     stop = False
-    dis.initialize_agents_at_center()
-    while(time_step < dis.time_steps and not stop):
-        dis.draw_agents(current_time=time_step)
-        dis.step()
-        nr_sus[time_step] = sum(dis.susceptible)
-        nr_inf[time_step] = sum(dis.infected)
-        nr_rec[time_step] = sum(dis.recovered)
+    SIR.initialize_agents_at_center()
+    while(time_step < SIR.time_steps and not stop):
+        SIR.draw_agents(current_time=time_step)
+        SIR.step()
+        nr_sus[time_step] = sum(SIR.susceptible)
+        nr_inf[time_step] = sum(SIR.infected)
+        nr_rec[time_step] = sum(SIR.recovered)
         time[time_step] = time_step
         time_step += 1
         if (time_step == 100):
@@ -226,10 +226,79 @@ def task1_3():
     plt.ylabel('Number of agents')
     plt.xlabel('Time Steps')
     plt.legend()
-    plt.title("Diffusion Rate = " + str(dis.d) + "      Infection Rate = " + str(dis.beta) + "     Recovery Rate = " + str(dis.gamma))
+    plt.title("Diffusion Rate = " + str(SIR.d) + "      Infection Rate = " + str(SIR.beta) + "     Recovery Rate = " + str(SIR.gamma))
     plt.show()
 
+def task2_1():
+    SIR = DiseaseSpreading(time_steps=500, nr_agents=1000, grid_length=100, diffusion_rate=0.8, infection_rate=0.6, recovery_rate=0.01)
+    time_step = 0
+    nr_sus = np.zeros((SIR.time_steps, 1))
+    nr_inf = np.zeros((SIR.time_steps, 1))
+    nr_rec = np.zeros((SIR.time_steps, 1))
+    time = np.zeros((SIR.time_steps, 1))
+    SIR.initialize_agents_at_center()
+    while(time_step < SIR.time_steps):
+        SIR.draw_agents(current_time=time_step)
+        SIR.step()
+        nr_sus[time_step] = sum(SIR.susceptible)
+        nr_inf[time_step] = sum(SIR.infected)
+        nr_rec[time_step] = sum(SIR.recovered)
+        time[time_step] = time_step
+        time_step += 1
+        if (time_step == 100):
+            plt.savefig('task2_1_popAt100')
+        if (time_step == 400):
+            plt.savefig('task2_1_popAt400')
+    plt.figure()
+    plt.plot(time, nr_sus, color='blue', label='Susceptible Agents')
+    plt.plot(time, nr_inf, color='red', label='Infected Agents')
+    plt.plot(time, nr_rec, color='green', label='Recovered Agents')
+    plt.ylabel('Number of agents')
+    plt.xlabel('Time Steps')
+    plt.legend()
+    plt.title("Diffusion Rate = " + str(SIR.d) + "      Infection Rate = " + str(SIR.beta) + "     Recovery Rate = " + str(SIR.gamma))
+    plt.show()
+
+def task2_2():
+    SIR = DiseaseSpreading(time_steps=500, nr_agents=1000, grid_length=100, diffusion_rate=0.6, infection_rate=1, recovery_rate=0.1)
+    time_step = 0
+    nr_sus = np.zeros((SIR.time_steps, 1))
+    nr_inf = np.zeros((SIR.time_steps, 1))
+    nr_rec = np.zeros((SIR.time_steps, 1))
+    time = np.zeros((SIR.time_steps, 1))
+    SIR.initialize_agents_at_center()
+    while(time_step < SIR.time_steps):
+        SIR.draw_agents(current_time=time_step)
+        SIR.step()
+        nr_sus[time_step] = sum(SIR.susceptible)
+        nr_inf[time_step] = sum(SIR.infected)
+        nr_rec[time_step] = sum(SIR.recovered)
+        time[time_step] = time_step
+        time_step += 1
+        if (time_step == 50):
+            plt.savefig('task2_2_popAt50')
+        if (time_step == 100):
+            plt.savefig('task2_2_popAt100')
+        if (time_step == 400):
+            plt.savefig('task2_2_popAt400')
+    plt.figure()
+    plt.plot(time, nr_sus, color='blue', label='Susceptible Agents')
+    plt.plot(time, nr_inf, color='red', label='Infected Agents')
+    plt.plot(time, nr_rec, color='green', label='Recovered Agents')
+    plt.ylabel('Number of agents')
+    plt.xlabel('Time Steps')
+    plt.legend()
+    plt.title("Diffusion Rate = " + str(SIR.d) + "      Infection Rate = " + str(SIR.beta) + "     Recovery Rate = " + str(SIR.gamma))
+    plt.show()
+
+def task3_1():
+    
 
 #task1_1()
 #task1_2()
-task1_3()
+#task1_3()
+
+#task2_1()
+#task2_2()
+
+task3_1()

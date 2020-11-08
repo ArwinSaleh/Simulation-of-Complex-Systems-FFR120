@@ -1,5 +1,6 @@
 import random as rnd
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import draw
 import numpy as np
 
 class DiseaseSpreading:
@@ -49,13 +50,11 @@ class DiseaseSpreading:
             plt.scatter(self.x[sus_index], self.y[sus_index], color='blue', label='Susceptible')
             plt.scatter(self.x[inf_index], self.y[inf_index], color='red', label='Infected')
             plt.scatter(self.x[rec_index], self.y[rec_index], color='green', label='Recovered')
-            #for i in range(len(inf_index)):        DEBUG
-            #    plt.text(self.x[inf_index[i]], self.y[inf_index[i]], str(self.get_agent_index(self.x[inf_index[i]], self.y[inf_index[i]])))
         plt.axis([-2, self.grid_length + 2, -2, self.grid_length + 2])
-        plt.title("Diffusion Rate = " + str(self.d) + "      Infection Rate = " + str(self.beta) + "     Recovery Rate = " + str(self.gamma) + 
-                    "\nSusceptible = " + str(sum(self.susceptible)[0]) + "      Infected = " + str(sum(self.infected)[0]) + "     Recovered = " + str(sum(self.recovered)[0]) 
-                    + "\nTime Step: " + str(current_time))
-        plt.legend(bbox_to_anchor=(1, 1))
+        plt.title("Diffusion Rate = " + str(self.d) + "      Infection Rate = " + str(self.beta) + "     Recovery Rate = " + str(self.gamma) 
+        + "\nTime Step: " + str(current_time + 1))
+        if not DRAW_PATH:
+            plt.legend(bbox_to_anchor=(1, 1))
         plt.draw()
         plt.pause(0.001)
 
@@ -129,13 +128,13 @@ class DiseaseSpreading:
         found_a_way = False
         while(found_a_way == False):
             r = rnd.randint(0, 4)
-            if r == 0 and self.x[i] < 100:
+            if r == 0 and self.x[i] < self.grid_length:
                 self.x[i] += 1
                 found_a_way = True
             elif r == 1 and self.x[i] > 0:
                 self.x[i] -= 1
                 found_a_way = True
-            elif r == 2 and self.y[i] < 100:
+            elif r == 2 and self.y[i] < self.grid_length:
                 self.y[i] += 1
                 found_a_way = True
             elif r == 3 and self.y[i] > 0:
@@ -154,33 +153,7 @@ class DiseaseSpreading:
             if agent_should_recover:
                 self.recover_agent(i)
 
-def task1_3():
-    dis = DiseaseSpreading(time_steps=1000, nr_agents=1000, grid_length=100, diffusion_rate=0.8, infection_rate=0.6, recovery_rate=0.01)
-    time_step = 0
-    nr_sus = np.zeros((dis.time_steps, 1))
-    nr_inf = np.zeros((dis.time_steps, 1))
-    nr_rec = np.zeros((dis.time_steps, 1))
-    time = np.zeros((dis.time_steps, 1))
-    stop = False
-    dis.initialize_agents_at_center()
-    while(time_step < dis.time_steps and not stop):
-        dis.draw_agents(current_time=time_step)
-        dis.step()
-        nr_sus[time_step] = sum(dis.susceptible)
-        nr_inf[time_step] = sum(dis.infected)
-        nr_rec[time_step] = sum(dis.recovered)
-        time[time_step] = time_step
-        if (time_step == 100):
-            plt.savefig('task1_3_popAt100')
-        time_step += 1
-    plt.figure()
-    plt.plot(time, nr_sus, color='blue', label='Susceptible Agents')
-    plt.plot(time, nr_inf, color='red', label='Infected Agents')
-    plt.plot(time, nr_rec, color='green', label='Recovered Agents')
-    plt.ylabel('Number of agents')
-    plt.xlabel('Time Steps')
-    plt.legend()
-    plt.show()
+
 
 def task1_1():
     dis = DiseaseSpreading(time_steps=1000, nr_agents=1, grid_length=100, diffusion_rate=0.8, infection_rate=0.6, recovery_rate=0.01)
@@ -201,7 +174,7 @@ def task1_1():
         time_step += 1
 
 def task1_2():
-    dis = DiseaseSpreading(time_steps=1000, nr_agents=10, grid_length=100, diffusion_rate=0.8, infection_rate=0.6, recovery_rate=0.01)
+    dis = DiseaseSpreading(time_steps=1000, nr_agents=10, grid_length=10, diffusion_rate=0.8, infection_rate=0.6, recovery_rate=0.01)
     time_step = 0
     nr_sus = np.zeros((dis.time_steps, 1))
     nr_inf = np.zeros((dis.time_steps, 1))
@@ -224,6 +197,36 @@ def task1_2():
     plt.ylabel('Number of agents')
     plt.xlabel('Time Steps')
     plt.legend()
+    plt.title("Diffusion Rate = " + str(dis.d) + "      Infection Rate = " + str(dis.beta) + "     Recovery Rate = " + str(dis.gamma))
+    plt.show()
+
+def task1_3():
+    dis = DiseaseSpreading(time_steps=1000, nr_agents=1000, grid_length=100, diffusion_rate=0.8, infection_rate=0.6, recovery_rate=0.01)
+    time_step = 0
+    nr_sus = np.zeros((dis.time_steps, 1))
+    nr_inf = np.zeros((dis.time_steps, 1))
+    nr_rec = np.zeros((dis.time_steps, 1))
+    time = np.zeros((dis.time_steps, 1))
+    stop = False
+    dis.initialize_agents_at_center()
+    while(time_step < dis.time_steps and not stop):
+        dis.draw_agents(current_time=time_step)
+        dis.step()
+        nr_sus[time_step] = sum(dis.susceptible)
+        nr_inf[time_step] = sum(dis.infected)
+        nr_rec[time_step] = sum(dis.recovered)
+        time[time_step] = time_step
+        time_step += 1
+        if (time_step == 100):
+            plt.savefig('task1_3_popAt100')
+    plt.figure()
+    plt.plot(time, nr_sus, color='blue', label='Susceptible Agents')
+    plt.plot(time, nr_inf, color='red', label='Infected Agents')
+    plt.plot(time, nr_rec, color='green', label='Recovered Agents')
+    plt.ylabel('Number of agents')
+    plt.xlabel('Time Steps')
+    plt.legend()
+    plt.title("Diffusion Rate = " + str(dis.d) + "      Infection Rate = " + str(dis.beta) + "     Recovery Rate = " + str(dis.gamma))
     plt.show()
 
 

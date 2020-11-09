@@ -2,7 +2,10 @@ import random as rnd
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import draw
 import numpy as np
-from mpl_toolkits import mplot3d
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
+from numpy.lib.function_base import _rot90_dispatcher
 
 class DiseaseSpreading:
     def __init__(self, time_steps, nr_agents, grid_length, diffusion_rate, infection_rate, recovery_rate):
@@ -342,9 +345,7 @@ def task4():
     SIR = DiseaseSpreading(time_steps=1, nr_agents=1000, grid_length=100, diffusion_rate=0.6, infection_rate=0.8, recovery_rate=0.1)
     betas = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8]
     gammas = [0.01, 0.02, 0.1, 0.12, 0.13, 0.14, 0.15]
-    beta_index = 0
-    gamma_index = 0
-    k_list = list()
+    k_values = np.zeros((len(betas), len(gammas)))
     reps = 10
     R_infinity = np.zeros((len(betas), len(gammas)))
     for i in range(len(betas)):
@@ -355,7 +356,6 @@ def task4():
                 SIR.beta = betas[i]
                 SIR.gamma = gammas[j]
                 time_step = 0
-                k_list.append(betas[i] / gammas[j])
                 nr_rec = np.zeros((SIR.time_steps, 1))
                 while (time_step < SIR.time_steps and stop == False):
                     print(sum(SIR.infected))
@@ -370,13 +370,14 @@ def task4():
                             stop = True
                     
                 R_infinity[i, j] = sum(SIR.recovered)
-        
+                k_values[i, j] = betas[i] / gammas[i]   
     fig = plt.figure()
-    ax = plt.gca(projection='3d')
-    plt.title("Diffusion Rate = " + str(SIR.d) + "      Beta = " + str(SIR.beta) + "     Gammas = " + str(gammas))
-    ax.plot3D(np.array(betas), np.array(k_list), np.array(R_infinity), 'gray')
-    plt.ylabel('R infinity (Average of 10 runs)')
-    plt.xlabel('k = Beta / Gamma')
+    ax = fig.gca(projection='3d')
+    plt.title("Diffusion Rate = " + str(SIR.d) + "\nBetas = " + str(betas) +"\nGammas = " + str(gammas))
+    surf = ax.plot_surface(betas, k_values, R_infinity, cmap=cm.coolwarm, linewidth=0, antialiased=True)
+    ax.set_xlabel('beta')
+    ax.set_ylabel('k = beta / gamma')
+    ax.set_zlabel('R infinity (Average of 10 runs)')
     plt.legend()
     plt.show()
                     

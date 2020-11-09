@@ -5,7 +5,8 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
-from numpy.lib.function_base import _rot90_dispatcher
+from multiprocessing import Process, Queue
+from mpl_toolkits import mplot3d
 
 class DiseaseSpreading:
     def __init__(self, time_steps, nr_agents, grid_length, diffusion_rate, infection_rate, recovery_rate):
@@ -20,6 +21,11 @@ class DiseaseSpreading:
         self.susceptible = 0
         self.infected = 0
         self.recovered = 0
+
+        # For task 4
+        self.betas = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65]
+        self.gammas = [0.009, 0.01, 0.0125, 0.015, 0.0175, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08]
+        self.R_infinity = np.zeros((len(self.betas), len(self.gammas)))
 
     def initialize_agents(self, distribution_index=0.9):
         self.susceptible = np.ones((self.nr_agents, 1))  
@@ -157,7 +163,28 @@ class DiseaseSpreading:
             if agent_should_recover:
                 self.recover_agent(i)
 
-
+    def generate_Rinf_for_gamma(self, q, reps, i):
+        for j in range(len(self.gammas)):
+            for k in range(reps):
+                stop = False
+                self.initialize_agents(distribution_index=0.99)
+                self.beta = self.betas[i]
+                self.gamma = self.gammas[j]
+                time_step = 0
+                nr_rec = np.zeros((self.time_steps, 1))
+                while (time_step < self.time_steps and stop == False):
+                    print(sum(self.infected))
+                    print("Time Step = " + str(time_step))
+                    print("beta = " + str(self.beta))
+                    print("gamma = " + str(self.gamma))
+                    self.step()
+                    nr_rec[time_step] = sum(self.recovered)
+                    time_step += 1
+                    if (time_step > 10):
+                        if sum(self.infected) == 0:
+                            stop = True
+                self.R_infinity[i, j] = sum(self.recovered)
+        q.put(self.R_infinity[i, :])
 
 def task1_1():
     SIR = DiseaseSpreading(time_steps=1000, nr_agents=1, grid_length=100, diffusion_rate=0.8, infection_rate=0.6, recovery_rate=0.01)
@@ -342,48 +369,64 @@ def task3():
     plt.show()
 
 def task4():
-    SIR = DiseaseSpreading(time_steps=1, nr_agents=1000, grid_length=100, diffusion_rate=0.6, infection_rate=0.8, recovery_rate=0.1)
-    betas = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8]
-    gammas = [0.01, 0.02, 0.1, 0.12, 0.13, 0.14, 0.15]
-    k_values = np.zeros((len(betas), len(gammas)))
-    reps = 10
-    R_infinity = np.zeros((len(betas), len(gammas)))
-    for i in range(len(betas)):
-        for j in range(len(gammas)):
-            for k in range(reps):
-                stop = False
-                SIR.initialize_agents(distribution_index=0.99)
-                SIR.beta = betas[i]
-                SIR.gamma = gammas[j]
-                time_step = 0
-                nr_rec = np.zeros((SIR.time_steps, 1))
-                while (time_step < SIR.time_steps and stop == False):
-                    print(sum(SIR.infected))
-                    print("Time Step = " + str(time_step))
-                    print("beta = " + str(SIR.beta))
-                    print("gamma = " + str(SIR.gamma))
-                    SIR.step()
-                    nr_rec[time_step] = sum(SIR.recovered)
-                    time_step += 1
-                    if (time_step > 10):
-                        if sum(SIR.infected) == 0:
-                            stop = True
-                    
-                R_infinity[i, j] = sum(SIR.recovered)
-                k_values[i, j] = betas[i] / gammas[i]   
+    SIR = DiseaseSpreading(time_steps=1000, nr_agents=1000, grid_length=100, diffusion_rate=0.6, infection_rate=0.8, recovery_rate=0.1)
+    k_values = np.zeros((len(SIR.betas), len(SIR.gammas)))
+    for i in range(len(SIR.betas)):
+        for j in range(len(SIR.gammas)):
+            k_values[i, j] = SIR.betas[i] / SIR.gammas[i]
+    q0 = Queue()
+    q1 = Queue()
+    q2 = Queue()
+    q3 = Queue()
+    q4 = Queue()
+    q5 = Queue()
+    q6 = Queue()
+
+    thread0 = Process(target=SIR.generate_Rinf_for_gamma, args=(q0, 10, 0))
+    thread1 = Process(target=SIR.generate_Rinf_for_gamma, args=(q1, 10, 1))
+    thread2 = Process(target=SIR.generate_Rinf_for_gamma, args=(q2, 10, 2))
+    thread3 = Process(target=SIR.generate_Rinf_for_gamma, args=(q3, 10, 3))
+    thread4 = Process(target=SIR.generate_Rinf_for_gamma, args=(q4, 10, 4))
+    thread5 = Process(target=SIR.generate_Rinf_for_gamma, args=(q5, 10, 5))
+    thread6 = Process(target=SIR.generate_Rinf_for_gamma, args=(q6, 10, 6))
+    thread7 = Process(target=SIR.generate_Rinf_for_gamma, args=(q6, 10, 7))
+    thread8 = Process(target=SIR.generate_Rinf_for_gamma, args=(q6, 10, 8))
+    thread9 = Process(target=SIR.generate_Rinf_for_gamma, args=(q6, 10, 9))
+    thread10 = Process(target=SIR.generate_Rinf_for_gamma, args=(q6, 10, 10))
+    thread11 = Process(target=SIR.generate_Rinf_for_gamma, args=(q6, 10, 11))
+
+    thread0.start()
+    thread1.start()
+    thread2.start()
+    thread3.start()
+    thread4.start()
+    thread5.start()
+    thread6.start()
+    
+    thread0.join()
+    thread1.join()
+    thread2.join()
+    thread3.join()
+    thread4.join()
+    thread5.join()
+    thread6.join()
+    
+    SIR.R_infinity[0] = q0.get()
+    SIR.R_infinity[1] = q1.get()
+    SIR.R_infinity[2] = q2.get()
+    SIR.R_infinity[3] = q3.get()
+    SIR.R_infinity[4] = q4.get()
+    SIR.R_infinity[5] = q5.get()
+    SIR.R_infinity[6] = q6.get()
+
     fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    plt.title("Diffusion Rate = " + str(SIR.d) + "\nBetas = " + str(betas) +"\nGammas = " + str(gammas))
-    surf = ax.plot_surface(betas, k_values, R_infinity, cmap=cm.coolwarm, linewidth=0, antialiased=True)
+    ax = plt.axes(projection="3d")
+    plt.title("Diffusion Rate = " + str(SIR.d) + "\nBetas = " + str(SIR.betas) +"\nGammas = " + str(SIR.gammas))
+    ax.plot_surface(SIR.betas, k_values, SIR.R_infinity, cmap=cm.jet, rstride=1, cstride=1, edgecolor='black')
     ax.set_xlabel('beta')
     ax.set_ylabel('k = beta / gamma')
     ax.set_zlabel('R infinity (Average of 10 runs)')
-    plt.legend()
     plt.show()
-                    
-                
-    
-
 
 #task1_1()
 #task1_2()
@@ -394,4 +437,4 @@ def task4():
 
 #task3()
 
-task4()
+task4()    

@@ -19,9 +19,9 @@ class DiseaseSpreading:
 
     def initialize_agents(self, distribution_index=0.9):
         self.susceptible = np.ones((self.nr_agents, 1))  
-        self.susceptible[int(distribution_index * self.nr_agents) : self.nr_agents] = 0    # Initially, 90% of agents are susceptible.
+        self.susceptible[int(distribution_index * self.nr_agents) : self.nr_agents] = 0    # Initially, 90% (default) of agents are susceptible.
         self.infected = np.zeros((self.nr_agents, 1))    
-        self.infected[int(distribution_index * self.nr_agents) : self.nr_agents] = 1       # Initially, 10% of agents are infected.
+        self.infected[int(distribution_index * self.nr_agents) : self.nr_agents] = 1       # Initially, 10% (default) of agents are infected.
         self.recovered = np.zeros((self.nr_agents, 1))    # Initially, no agents have recovered.
 
     def initialize_agents_at_center(self):
@@ -35,7 +35,7 @@ class DiseaseSpreading:
                 agent_index = self.get_agent_index(x, y)
                 if agent_index != -1:
                     self.susceptible[agent_index] = 0
-                    self.infected[agent_index] = 1          
+                    self.infected[agent_index] = 1  
 
     def draw_agents(self, current_time, DRAW_PATH=False):
         sus_index = np.where(self.susceptible == 1)[0]
@@ -297,7 +297,30 @@ def task2_2():
     plt.title("Diffusion Rate = " + str(SIR.d) + "      Infection Rate = " + str(SIR.beta) + "     Recovery Rate = " + str(SIR.gamma))
     plt.show()
 
-#def task3_1():
+def task3():
+    SIR = DiseaseSpreading(time_steps=1000, nr_agents=1000, grid_length=100, diffusion_rate=0.4, infection_rate=0.3, recovery_rate=0.1)
+    time_step = 0
+    SIR.initialize_agents(distribution_index=0.99)
+    gammas = np.zeros((SIR.time_steps, 1))
+    num = 10
+    for i in range(len(gammas)):
+        gammas[i] = 1/num
+        num *= 10
+    nr_rec = np.zeros((SIR.time_steps, 1))
+    for gamma in gammas:
+        SIR.gamma = gamma
+        while (time_step < 100):
+            SIR.step()
+            nr_rec[time_step] = sum(SIR.recovered)
+            time_step += 1
+        plt.figure()
+        plt.plot(gammas, nr_rec, color='green', label='Recovered Agents')
+        plt.ylabel('Number of recovered agents')
+        plt.xlabel('Recovery Rate')
+        plt.legend()
+        plt.title("Diffusion Rate = " + str(SIR.d) + "      Infection Rate = " + str(SIR.beta) + "     Recovery Rate = " + str(SIR.gamma))
+        plt.show()
+
 
 
 #task1_1()
@@ -307,4 +330,4 @@ def task2_2():
 #task2_1()
 #task2_2()
 
-#task3_1()
+task3()

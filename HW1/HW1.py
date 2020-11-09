@@ -2,6 +2,7 @@ import random as rnd
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import draw
 import numpy as np
+from mpl_toolkits import mplot3d
 
 class DiseaseSpreading:
     def __init__(self, time_steps, nr_agents, grid_length, diffusion_rate, infection_rate, recovery_rate):
@@ -300,7 +301,7 @@ def task2_2():
 def task3():
     SIR = DiseaseSpreading(time_steps=1000, nr_agents=1000, grid_length=100, diffusion_rate=0.6, infection_rate=0.8, recovery_rate=0.1)
     run = 0
-    gammas = [0.01, 0.011, 0.012, 0.013, 0.014, 0.015, 0.020, 0.030, 0.040, 0.050, 0.100, 0.200]
+    gammas = [0.01, 0.02, 0.04, 0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18]
     R_infinity = np.zeros((len(gammas), 1))
     for gamma in gammas:
         R_infinity_reps = np.zeros((10, 1))
@@ -337,6 +338,52 @@ def task3():
     plt.legend()
     plt.show()
 
+def task4():
+    SIR = DiseaseSpreading(time_steps=1, nr_agents=1000, grid_length=100, diffusion_rate=0.6, infection_rate=0.8, recovery_rate=0.1)
+    betas = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8]
+    gammas = [0.01, 0.02, 0.1, 0.12, 0.13, 0.14, 0.15]
+    beta_index = 0
+    gamma_index = 0
+    k_list = list()
+    reps = 10
+    R_infinity = np.zeros((len(betas), len(gammas)))
+    for i in range(len(betas)):
+        for j in range(len(gammas)):
+            for k in range(reps):
+                stop = False
+                SIR.initialize_agents(distribution_index=0.99)
+                SIR.beta = betas[i]
+                SIR.gamma = gammas[j]
+                time_step = 0
+                k_list.append(betas[i] / gammas[j])
+                nr_rec = np.zeros((SIR.time_steps, 1))
+                while (time_step < SIR.time_steps and stop == False):
+                    print(sum(SIR.infected))
+                    print("Time Step = " + str(time_step))
+                    print("beta = " + str(SIR.beta))
+                    print("gamma = " + str(SIR.gamma))
+                    SIR.step()
+                    nr_rec[time_step] = sum(SIR.recovered)
+                    time_step += 1
+                    if (time_step > 10):
+                        if sum(SIR.infected) == 0:
+                            stop = True
+                    
+                R_infinity[i, j] = sum(SIR.recovered)
+        
+    fig = plt.figure()
+    ax = plt.gca(projection='3d')
+    plt.title("Diffusion Rate = " + str(SIR.d) + "      Beta = " + str(SIR.beta) + "     Gammas = " + str(gammas))
+    ax.plot3D(np.array(betas), np.array(k_list), np.array(R_infinity), 'gray')
+    plt.ylabel('R infinity (Average of 10 runs)')
+    plt.xlabel('k = Beta / Gamma')
+    plt.legend()
+    plt.show()
+                    
+                
+    
+
+
 #task1_1()
 #task1_2()
 #task1_3()
@@ -344,4 +391,6 @@ def task3():
 #task2_1()
 #task2_2()
 
-task3()
+#task3()
+
+task4()

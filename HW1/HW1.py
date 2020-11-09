@@ -298,30 +298,41 @@ def task2_2():
     plt.show()
 
 def task3():
-    SIR = DiseaseSpreading(time_steps=1000, nr_agents=1000, grid_length=100, diffusion_rate=0.4, infection_rate=0.3, recovery_rate=0.1)
-    time_step = 0
-    SIR.initialize_agents(distribution_index=0.99)
-    gammas = np.zeros((SIR.time_steps, 1))
-    num = 10
-    for i in range(len(gammas)):
-        gammas[i] = 1/num
-        num *= 10
-    nr_rec = np.zeros((SIR.time_steps, 1))
+    SIR = DiseaseSpreading(time_steps=1000, nr_agents=1000, grid_length=100, diffusion_rate=0.6, infection_rate=0.8, recovery_rate=0.1)
+    run = 0
+    gammas = [0.18, 0.16, 0.14, 0.12, 0.10, 0.08, 0.06, 0.04, 0.02, 0.01]
+    R_infinity = np.zeros((len(gammas), 1))
     for gamma in gammas:
-        SIR.gamma = gamma
-        while (time_step < 100):
-            SIR.step()
-            nr_rec[time_step] = sum(SIR.recovered)
-            time_step += 1
-        plt.figure()
-        plt.plot(gammas, nr_rec, color='green', label='Recovered Agents')
-        plt.ylabel('Number of recovered agents')
-        plt.xlabel('Recovery Rate')
-        plt.legend()
-        plt.title("Diffusion Rate = " + str(SIR.d) + "      Infection Rate = " + str(SIR.beta) + "     Recovery Rate = " + str(SIR.gamma))
-        plt.show()
+        R_infinity_reps = np.zeros((10, 1))
+        for rep in range(10):
+            stop = False
+            time = np.zeros((SIR.time_steps, 1))
+            nr_rec = np.zeros((SIR.time_steps, 1))
+            SIR.initialize_agents(distribution_index=0.99)
+            SIR.gamma = gamma
+            time_step = 0
+            while(time_step < SIR.time_steps and stop == False):
+                SIR.draw_agents(current_time=time_step)
+                SIR.step()
+                time[time_step] = time_step
+                nr_rec[time_step] = sum(SIR.recovered)
+                time_step += 1
+                if (time_step > 10):
+                    if sum(SIR.infected) == 0:
+                        stop = True
 
+            R_infinity_reps[rep] = sum(SIR.recovered)
 
+        R_infinity[run] = sum(R_infinity_reps) / len(R_infinity_reps)
+        run += 1
+    beta_gamma = np.divide(SIR.beta, gammas)
+    plt.figure()
+    plt.title("Diffusion Rate = " + str(SIR.d) + "      Beta = " + str(SIR.beta) + "     Gammas = " + str(gammas))
+    plt.plot(beta_gamma, R_infinity, color='green', label='Recovered Agents')
+    plt.ylabel('R infinity (Average of 10 runs)')
+    plt.xlabel('k = Beta / Gamma')
+    plt.legend()
+    plt.show()
 
 #task1_1()
 #task1_2()

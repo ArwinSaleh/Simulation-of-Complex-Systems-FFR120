@@ -300,7 +300,7 @@ def task2_2():
 def task3():
     SIR = DiseaseSpreading(time_steps=1000, nr_agents=1000, grid_length=100, diffusion_rate=0.6, infection_rate=0.8, recovery_rate=0.1)
     run = 0
-    gammas = [0.18, 0.16, 0.14, 0.12, 0.10, 0.08, 0.06, 0.04, 0.02, 0.01]
+    gammas = [0.01, 0.02, 0.04, 0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18]
     R_infinity = np.zeros((len(gammas), 1))
     for gamma in gammas:
         R_infinity_reps = np.zeros((10, 1))
@@ -312,7 +312,10 @@ def task3():
             SIR.gamma = gamma
             time_step = 0
             while(time_step < SIR.time_steps and stop == False):
-                SIR.draw_agents(current_time=time_step)
+                print(sum(SIR.infected))
+                print("Time Step = " + str(time_step))
+                print("beta = " + str(SIR.beta))
+                print("gamma = " + str(SIR.gamma))
                 SIR.step()
                 time[time_step] = time_step
                 nr_rec[time_step] = sum(SIR.recovered)

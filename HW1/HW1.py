@@ -23,7 +23,10 @@ class DiseaseSpreading:
         self.recovered = 0
 
         # For task 4
-        self.betas = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65]
+        self.betas = np.zeros((72, 1))
+        for i in range(72):
+            self.betas[i] = 0.1 + i * 0.01
+        print(self.betas)
         self.gammas = [0.009, 0.01, 0.0125, 0.015, 0.0175, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08]
         self.R_infinity = np.zeros((len(self.betas), len(self.gammas)))
 
@@ -373,78 +376,21 @@ def task4():
     k_values = np.zeros((len(SIR.betas), len(SIR.gammas)))
     for i in range(len(SIR.betas)):
         for j in range(len(SIR.gammas)):
-            k_values[i, j] = SIR.betas[i] / SIR.gammas[i]
-    q0 = Queue()
-    q1 = Queue()
-    q2 = Queue()
-    q3 = Queue()
-    q4 = Queue()
-    q5 = Queue()
-    q6 = Queue()
-    q7 = Queue()
+            k_values[i, j] = SIR.betas[i] / SIR.gammas[j]
 
-    thread0 = Process(target=SIR.generate_Rinf_for_gamma, args=(q0, 10, 0))
-    thread1 = Process(target=SIR.generate_Rinf_for_gamma, args=(q1, 10, 1))
-    thread2 = Process(target=SIR.generate_Rinf_for_gamma, args=(q2, 10, 2))
-    thread3 = Process(target=SIR.generate_Rinf_for_gamma, args=(q3, 10, 3))
-    thread4 = Process(target=SIR.generate_Rinf_for_gamma, args=(q4, 10, 4))
-    thread5 = Process(target=SIR.generate_Rinf_for_gamma, args=(q5, 10, 5))
-    thread6 = Process(target=SIR.generate_Rinf_for_gamma, args=(q6, 10, 6))
-    thread7 = Process(target=SIR.generate_Rinf_for_gamma, args=(q7, 10, 7))
+    queues = list()
+    threads = list()
 
-    thread0.start()
-    thread1.start()
-    thread2.start()
-    thread3.start()
-    thread4.start()
-    thread5.start()
-    thread6.start()
-    thread7.start()
+    for i in range(72):
+        queues.append(Queue())
+        threads.append(Process(target=SIR.generate_Rinf_for_gamma, args=(queues[i], 10, i)))
+        threads[i].start()
     
+    for i in range(72):
+        threads[i].join()
     
-    thread0.join()
-    thread1.join()
-    thread2.join()
-    thread3.join()
-    thread4.join()
-    thread5.join()
-    thread6.join()
-    thread7.join()
-    
-    SIR.R_infinity[0] = q0.get()
-    SIR.R_infinity[1] = q1.get()
-    SIR.R_infinity[2] = q2.get()
-    SIR.R_infinity[3] = q3.get()
-    SIR.R_infinity[4] = q4.get()
-    SIR.R_infinity[5] = q5.get()
-    SIR.R_infinity[6] = q6.get()
-    SIR.R_infinity[7] = q7.get()
-
-    q8 = Queue()
-    q9 = Queue()
-    q10 = Queue()
-    q11 = Queue()
-
-    thread8 = Process(target=SIR.generate_Rinf_for_gamma, args=(q8, 10, 8))
-    thread9 = Process(target=SIR.generate_Rinf_for_gamma, args=(q9, 10, 9))
-    thread10 = Process(target=SIR.generate_Rinf_for_gamma, args=(q10, 10, 10))
-    thread11 = Process(target=SIR.generate_Rinf_for_gamma, args=(q11, 10, 11))
-
-    thread8.start()
-    thread9.start()
-    thread10.start()
-    thread11.start()
-
-    thread8.join()
-    thread9.join()
-    thread10.join()
-    thread11.join()
-    
-    
-    SIR.R_infinity[8] = q8.get()
-    SIR.R_infinity[9] = q9.get()
-    SIR.R_infinity[10] = q10.get()
-    SIR.R_infinity[11] = q11.get()
+    for i in range(72):
+        SIR.R_infinity[i] = queues[i].get()
 
     fig = plt.figure()
     ax = plt.axes(projection="3d")

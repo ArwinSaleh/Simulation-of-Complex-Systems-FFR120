@@ -372,7 +372,7 @@ def task3():
     plt.show()
 
 def task4():
-    SIR = DiseaseSpreading(time_steps=10, nr_agents=100, grid_length=100, diffusion_rate=0.6, infection_rate=0.8, recovery_rate=0.1)
+    SIR = DiseaseSpreading(time_steps=10000, nr_agents=1000, grid_length=100, diffusion_rate=0.6, infection_rate=0.8, recovery_rate=0.1)
     k_values = np.zeros((len(SIR.betas), len(SIR.gammas)))
     for i in range(len(SIR.betas)):
         for j in range(len(SIR.gammas)):

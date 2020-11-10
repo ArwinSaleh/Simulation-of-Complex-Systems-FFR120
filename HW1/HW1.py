@@ -26,8 +26,7 @@ class DiseaseSpreading:
         self.betas = np.zeros((72, 1))
         for i in range(72):
             self.betas[i] = 0.1 + i * 0.01
-        print(self.betas)
-        self.gammas = [0.009, 0.01, 0.0125, 0.015, 0.0175, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08]
+        self.gammas = [0.009, 0.01, 0.0125, 0.015, 0.0175, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055, 0.06, 0.065, 0.07, 0.075, 0.08]
         self.R_infinity = np.zeros((len(self.betas), len(self.gammas)))
 
     def initialize_agents(self, distribution_index=0.9):
@@ -176,10 +175,10 @@ class DiseaseSpreading:
                 time_step = 0
                 nr_rec = np.zeros((self.time_steps, 1))
                 while (time_step < self.time_steps and stop == False):
-                    print(sum(self.infected))
-                    print("Time Step = " + str(time_step))
-                    print("beta = " + str(self.beta))
-                    print("gamma = " + str(self.gamma))
+                    #print(sum(self.infected))
+                    #print("Time Step = " + str(time_step))
+                    #print("beta = " + str(self.beta))
+                    #print("gamma = " + str(self.gamma))
                     self.step()
                     nr_rec[time_step] = sum(self.recovered)
                     time_step += 1
@@ -382,6 +381,7 @@ def task4():
     threads = list()
 
     for i in range(9):
+        print("CURRENT PROCESS: " + str(i) + " of " + "9")
         for j in range(i * 8, 8 + i * 8):
             queues.append(Queue())
             threads.append(Process(target=SIR.generate_Rinf_for_gamma, args=(queues[j], 10, j)))
@@ -394,7 +394,7 @@ def task4():
     fig = plt.figure()
     ax = plt.axes(projection="3d")
     plt.title("Diffusion Rate = " + str(SIR.d) + "\nBetas = " + str(SIR.betas[0]) + " - " + str(SIR.betas[-1]) +"\nGammas = " + str(SIR.gammas))
-    ax.plot_surface(SIR.betas, k_values, SIR.R_infinity, cmap=cm.jet, rstride=1, cstride=1, antialiased=True)
+    ax.plot_surface(SIR.betas, k_values, SIR.R_infinity, cmap=cm.jet, antialiased=True)
     ax.set_xlabel('beta')
     ax.set_ylabel('k = beta / gamma')
     ax.set_zlabel('R infinity (Average of 10 runs)')

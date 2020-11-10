@@ -394,7 +394,7 @@ def task4():
     fig = plt.figure()
     ax = plt.axes(projection="3d")
     plt.title("Diffusion Rate = " + str(SIR.d) + "\nBetas = " + str(SIR.betas[0]) + " - " + str(SIR.betas[-1]) +"\nGammas = " + str(SIR.gammas))
-    ax.plot_surface(SIR.betas, k_values, SIR.R_infinity, cmap=cm.jet, rstride=10, cstride=10, edgecolor='black', antialiased=True)
+    ax.plot_surface(SIR.betas, k_values, SIR.R_infinity, cmap=cm.jet, rstride=1, cstride=1, antialiased=True)
     ax.set_xlabel('beta')
     ax.set_ylabel('k = beta / gamma')
     ax.set_zlabel('R infinity (Average of 10 runs)')

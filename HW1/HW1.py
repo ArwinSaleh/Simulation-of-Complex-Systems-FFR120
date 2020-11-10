@@ -369,7 +369,7 @@ def task3():
     plt.show()
 
 def task4():
-    SIR = DiseaseSpreading(time_steps=1000, nr_agents=1000, grid_length=100, diffusion_rate=0.6, infection_rate=0.8, recovery_rate=0.1)
+    SIR = DiseaseSpreading(time_steps=10000, nr_agents=1000, grid_length=100, diffusion_rate=0.6, infection_rate=0.8, recovery_rate=0.1)
     k_values = np.zeros((len(SIR.betas), len(SIR.gammas)))
     for i in range(len(SIR.betas)):
         for j in range(len(SIR.gammas)):
@@ -382,10 +382,6 @@ def task4():
     q5 = Queue()
     q6 = Queue()
     q7 = Queue()
-    q8 = Queue()
-    q9 = Queue()
-    q10 = Queue()
-    q11 = Queue()
 
     thread0 = Process(target=SIR.generate_Rinf_for_gamma, args=(q0, 10, 0))
     thread1 = Process(target=SIR.generate_Rinf_for_gamma, args=(q1, 10, 1))
@@ -395,10 +391,6 @@ def task4():
     thread5 = Process(target=SIR.generate_Rinf_for_gamma, args=(q5, 10, 5))
     thread6 = Process(target=SIR.generate_Rinf_for_gamma, args=(q6, 10, 6))
     thread7 = Process(target=SIR.generate_Rinf_for_gamma, args=(q7, 10, 7))
-    thread8 = Process(target=SIR.generate_Rinf_for_gamma, args=(q8, 10, 8))
-    thread9 = Process(target=SIR.generate_Rinf_for_gamma, args=(q9, 10, 9))
-    thread10 = Process(target=SIR.generate_Rinf_for_gamma, args=(q10, 10, 10))
-    thread11 = Process(target=SIR.generate_Rinf_for_gamma, args=(q11, 10, 11))
 
     thread0.start()
     thread1.start()
@@ -408,10 +400,7 @@ def task4():
     thread5.start()
     thread6.start()
     thread7.start()
-    thread8.start()
-    thread9.start()
-    thread10.start()
-    thread11.start()
+    
     
     thread0.join()
     thread1.join()
@@ -421,10 +410,6 @@ def task4():
     thread5.join()
     thread6.join()
     thread7.join()
-    thread8.join()
-    thread9.join()
-    thread10.join()
-    thread11.join()
     
     SIR.R_infinity[0] = q0.get()
     SIR.R_infinity[1] = q1.get()
@@ -434,6 +419,28 @@ def task4():
     SIR.R_infinity[5] = q5.get()
     SIR.R_infinity[6] = q6.get()
     SIR.R_infinity[7] = q7.get()
+
+    q8 = Queue()
+    q9 = Queue()
+    q10 = Queue()
+    q11 = Queue()
+
+    thread8 = Process(target=SIR.generate_Rinf_for_gamma, args=(q8, 10, 8))
+    thread9 = Process(target=SIR.generate_Rinf_for_gamma, args=(q9, 10, 9))
+    thread10 = Process(target=SIR.generate_Rinf_for_gamma, args=(q10, 10, 10))
+    thread11 = Process(target=SIR.generate_Rinf_for_gamma, args=(q11, 10, 11))
+
+    thread8.start()
+    thread9.start()
+    thread10.start()
+    thread11.start()
+
+    thread8.join()
+    thread9.join()
+    thread10.join()
+    thread11.join()
+    
+    
     SIR.R_infinity[8] = q8.get()
     SIR.R_infinity[9] = q9.get()
     SIR.R_infinity[10] = q10.get()
@@ -442,7 +449,7 @@ def task4():
     fig = plt.figure()
     ax = plt.axes(projection="3d")
     plt.title("Diffusion Rate = " + str(SIR.d) + "\nBetas = " + str(SIR.betas) +"\nGammas = " + str(SIR.gammas))
-    ax.plot_surface(SIR.betas, k_values, SIR.R_infinity, cmap=cm.jet, rstride=1, cstride=1, edgecolor='black')
+    ax.plot_surface(SIR.betas, k_values, SIR.R_infinity, cmap=cm.jet, rstride=10, cstride=10, edgecolor='black')
     ax.set_xlabel('beta')
     ax.set_ylabel('k = beta / gamma')
     ax.set_zlabel('R infinity (Average of 10 runs)')

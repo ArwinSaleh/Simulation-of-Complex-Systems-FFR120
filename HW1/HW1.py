@@ -372,7 +372,7 @@ def task3():
     plt.show()
 
 def task4():
-    SIR = DiseaseSpreading(time_steps=10000, nr_agents=1000, grid_length=100, diffusion_rate=0.6, infection_rate=0.8, recovery_rate=0.1)
+    SIR = DiseaseSpreading(time_steps=100, nr_agents=100, grid_length=100, diffusion_rate=0.6, infection_rate=0.8, recovery_rate=0.1)
     k_values = np.zeros((len(SIR.betas), len(SIR.gammas)))
     for i in range(len(SIR.betas)):
         for j in range(len(SIR.gammas)):
@@ -381,21 +381,20 @@ def task4():
     queues = list()
     threads = list()
 
-    for i in range(72):
-        queues.append(Queue())
-        threads.append(Process(target=SIR.generate_Rinf_for_gamma, args=(queues[i], 10, i)))
-        threads[i].start()
-    
-    for i in range(72):
-        threads[i].join()
-    
-    for i in range(72):
-        SIR.R_infinity[i] = queues[i].get()
+    for i in range(9):
+        for j in range(i * 8, 8 + i * 8):
+            queues.append(Queue())
+            threads.append(Process(target=SIR.generate_Rinf_for_gamma, args=(queues[j], 10, j)))
+            threads[j].start()
+        for j in range(i * 8, 8 + i * 8):
+            threads[j].join()
+        for j in range(i * 8, 8 + i * 8):
+            SIR.R_infinity[j] = queues[j].get()
 
     fig = plt.figure()
     ax = plt.axes(projection="3d")
-    plt.title("Diffusion Rate = " + str(SIR.d) + "\nBetas = " + str(SIR.betas) +"\nGammas = " + str(SIR.gammas))
-    ax.plot_surface(SIR.betas, k_values, SIR.R_infinity, cmap=cm.jet, rstride=10, cstride=10, edgecolor='black')
+    plt.title("Diffusion Rate = " + str(SIR.d) + "\nBetas = " + str(SIR.betas[0]) + " - " + str(SIR.betas[-1]) +"\nGammas = " + str(SIR.gammas))
+    ax.plot_surface(SIR.betas, k_values, SIR.R_infinity, cmap=cm.jet, rstride=1, cstride=1, edgecolor='black')
     ax.set_xlabel('beta')
     ax.set_ylabel('k = beta / gamma')
     ax.set_zlabel('R infinity (Average of 10 runs)')

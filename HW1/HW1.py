@@ -22,7 +22,11 @@ class DiseaseSpreading:
         self.infected = 0
         self.recovered = 0
 
-        # For task 4
+        # Helper variables for task 3   (multiprocessing, only works for at least 8 threads atm.)
+        self.gammas_task3 = [0.01, 0.011, 0.012, 0.013, 0.014, 0.015, 0.0175, 0.02, 0.025, 0.03, 0.035, 0.04, 0.06, 0.08, 0.10,  0.12,]
+        self.R_infinity_task3 = np.zeros((len(self.gammas_task3), 1))
+
+        # Helper variables for task 4   (multiprocessing, only works for at least 8 threads atm.)
         self.betas = np.zeros((72, 1))
         for i in range(72):
             self.betas[i] = 0.1 + i * 0.01
@@ -188,6 +192,33 @@ class DiseaseSpreading:
                 self.R_infinity[i, j] = sum(self.recovered)
         q.put(self.R_infinity[i, :])
 
+    def task3_helper(self, q, i):
+        R_infinity_reps = np.zeros((10, 1))
+        for rep in range(10):
+            stop = False
+            time = np.zeros((self.time_steps, 1))
+            nr_rec = np.zeros((self.time_steps, 1))
+            self.initialize_agents(distribution_index=0.99)
+            self.gamma = self.gammas_task3[i]
+            time_step = 0
+            while(time_step < self.time_steps and stop == False):
+                print(sum(self.infected))
+                print("Time Step = " + str(time_step))
+                print("beta = " + str(self.beta))
+                print("gamma = " + str(self.gamma))
+                self.step()
+                time[time_step] = time_step
+                nr_rec[time_step] = sum(self.recovered)
+                time_step += 1
+                if (time_step > 10):
+                    if sum(self.infected) == 0:
+                        stop = True
+
+            R_infinity_reps[rep] = sum(self.recovered)
+
+        self.R_infinity_task3[i] = sum(R_infinity_reps) / len(R_infinity_reps)
+        q.put(self.R_infinity_task3[i])
+
 def task1_1():
     SIR = DiseaseSpreading(time_steps=1000, nr_agents=1, grid_length=100, diffusion_rate=0.8, infection_rate=0.6, recovery_rate=0.01)
     time_step = 0
@@ -331,40 +362,27 @@ def task2_2():
     plt.show()
 
 def task3():
-    SIR = DiseaseSpreading(time_steps=1000, nr_agents=1000, grid_length=100, diffusion_rate=0.6, infection_rate=0.8, recovery_rate=0.1)
-    run = 0
-    gammas = [0.01, 0.02, 0.04, 0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18]
-    R_infinity = np.zeros((len(gammas), 1))
-    for gamma in gammas:
-        R_infinity_reps = np.zeros((10, 1))
-        for rep in range(10):
-            stop = False
-            time = np.zeros((SIR.time_steps, 1))
-            nr_rec = np.zeros((SIR.time_steps, 1))
-            SIR.initialize_agents(distribution_index=0.99)
-            SIR.gamma = gamma
-            time_step = 0
-            while(time_step < SIR.time_steps and stop == False):
-                print(sum(SIR.infected))
-                print("Time Step = " + str(time_step))
-                print("beta = " + str(SIR.beta))
-                print("gamma = " + str(SIR.gamma))
-                SIR.step()
-                time[time_step] = time_step
-                nr_rec[time_step] = sum(SIR.recovered)
-                time_step += 1
-                if (time_step > 10):
-                    if sum(SIR.infected) == 0:
-                        stop = True
+    SIR = DiseaseSpreading(time_steps=10000, nr_agents=1000, grid_length=100, diffusion_rate=0.6, infection_rate=0.4, recovery_rate=0.1)
+    
+    beta_gamma = np.divide(SIR.beta, SIR.gammas_task3)
 
-            R_infinity_reps[rep] = sum(SIR.recovered)
+    queues = list()
+    threads = list()
 
-        R_infinity[run] = sum(R_infinity_reps) / len(R_infinity_reps)
-        run += 1
-    beta_gamma = np.divide(SIR.beta, gammas)
+    for i in range(2):
+        print("CURRENT PROCESS: " + str(i+1) + " of " + "2")
+        for j in range(i * 8, 8 + i * 8):
+            queues.append(Queue())
+            threads.append(Process(target=SIR.task3_helper, args=(queues[j], j)))
+            threads[j].start()
+        for j in range(i * 8, 8 + i * 8):
+            threads[j].join()
+        for j in range(i * 8, 8 + i * 8):
+            SIR.R_infinity_task3[j] = queues[j].get()
+
     plt.figure()
-    plt.title("Diffusion Rate = " + str(SIR.d) + "      Beta = " + str(SIR.beta) + "     Gammas = " + str(gammas))
-    plt.plot(beta_gamma, R_infinity, color='green', label='Recovered Agents')
+    plt.title("Diffusion Rate = " + str(SIR.d) + "      Beta = " + str(SIR.beta) + "\nGammas = " + str(SIR.gammas_task3))
+    plt.plot(beta_gamma, SIR.R_infinity_task3, color='green', label='Recovered Agents')
     plt.ylabel('R infinity (Average of 10 runs)')
     plt.xlabel('k = Beta / Gamma')
     plt.legend()
@@ -408,6 +426,6 @@ def task4():
 #task2_1()
 #task2_2()
 
-#task3()
+task3()
 
-task4()    
+#task4()    

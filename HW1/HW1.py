@@ -380,8 +380,9 @@ def task3():
         for j in range(i * 8, 8 + i * 8):
             SIR.R_infinity_task3[j] = queues[j].get()
 
+    gammas_temp = np.divide(SIR.beta, SIR.k_task3)
     plt.figure()
-    plt.title("Diffusion Rate = " + str(SIR.d) + "      Beta = " + str(SIR.beta) + "\nGammas = 0")
+    plt.title("Diffusion Rate = " + str(SIR.d) + "      Beta = " + str(SIR.beta) + "\nGammas = " + str(gammas_temp[-1]) + " - " + str(gammas_temp[0]) + "   (32 data points)")
     plt.plot(SIR.k_task3, SIR.R_infinity_task3, color='green', label='Recovered Agents')
     plt.ylabel('R infinity (Average of 10 runs)')
     plt.xlabel('k = Beta / Gamma')

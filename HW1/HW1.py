@@ -23,8 +23,10 @@ class DiseaseSpreading:
         self.recovered = 0
 
         # Helper variables for task 3   (multiprocessing, only works for at least 8 threads atm.)
-        self.gammas_task3 = [0.01, 0.011, 0.012, 0.013, 0.014, 0.015, 0.0175, 0.02, 0.025, 0.03, 0.035, 0.04, 0.06, 0.08, 0.10,  0.12,]
-        self.R_infinity_task3 = np.zeros((len(self.gammas_task3), 1))
+        self.k_task3 = np.zeros((32, 1))
+        for i in range(len(self.k_task3)):
+            self.k_task3[i] = 2.5 + 2.5 * i
+        self.R_infinity_task3 = np.zeros((len(self.k_task3), 1))
 
         # Helper variables for task 4   (multiprocessing, only works for at least 8 threads atm.)
         self.betas = np.zeros((72, 1))
@@ -199,7 +201,7 @@ class DiseaseSpreading:
             time = np.zeros((self.time_steps, 1))
             nr_rec = np.zeros((self.time_steps, 1))
             self.initialize_agents(distribution_index=0.99)
-            self.gamma = self.gammas_task3[i]
+            self.gamma = self.beta / self.k_task3[i]
             time_step = 0
             while(time_step < self.time_steps and stop == False):
                 print(sum(self.infected))
@@ -364,13 +366,11 @@ def task2_2():
 def task3():
     SIR = DiseaseSpreading(time_steps=10000, nr_agents=1000, grid_length=100, diffusion_rate=0.6, infection_rate=0.4, recovery_rate=0.1)
     
-    beta_gamma = np.divide(SIR.beta, SIR.gammas_task3)
-
     queues = list()
     threads = list()
 
-    for i in range(2):
-        print("CURRENT PROCESS: " + str(i+1) + " of " + "2")
+    for i in range(4):
+        print("CURRENT PROCESS: " + str(i+1) + " of " + "4")
         for j in range(i * 8, 8 + i * 8):
             queues.append(Queue())
             threads.append(Process(target=SIR.task3_helper, args=(queues[j], j)))
@@ -381,8 +381,8 @@ def task3():
             SIR.R_infinity_task3[j] = queues[j].get()
 
     plt.figure()
-    plt.title("Diffusion Rate = " + str(SIR.d) + "      Beta = " + str(SIR.beta) + "\nGammas = " + str(SIR.gammas_task3))
-    plt.plot(beta_gamma, SIR.R_infinity_task3, color='green', label='Recovered Agents')
+    plt.title("Diffusion Rate = " + str(SIR.d) + "      Beta = " + str(SIR.beta) + "\nGammas = 0")
+    plt.plot(SIR.k_task3, SIR.R_infinity_task3, color='green', label='Recovered Agents')
     plt.ylabel('R infinity (Average of 10 runs)')
     plt.xlabel('k = Beta / Gamma')
     plt.legend()

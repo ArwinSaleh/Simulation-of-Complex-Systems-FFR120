@@ -238,6 +238,8 @@ def task1_1():
         nr_rec[time_step] = sum(SIR.recovered)
         time[time_step] = time_step
         time_step += 1
+        if time_step == 100:
+            plt.savefig('tas1_1_path_zoomOut')
 
 def task1_2():
     SIR = DiseaseSpreading(time_steps=500, nr_agents=100, grid_length=10, diffusion_rate=0.6, infection_rate=0.1, recovery_rate=0.01)
@@ -273,7 +275,7 @@ def task1_2():
     plt.show()
 
 def task1_3():
-    SIR = DiseaseSpreading(time_steps=1000, nr_agents=1000, grid_length=100, diffusion_rate=0.4, infection_rate=0.3, recovery_rate=0.1)
+    SIR = DiseaseSpreading(time_steps=1000, nr_agents=1000, grid_length=100, diffusion_rate=0.8, infection_rate=0.6, recovery_rate=0.01)
     time_step = 0
     nr_sus = np.zeros((SIR.time_steps, 1))
     nr_inf = np.zeros((SIR.time_steps, 1))
@@ -422,11 +424,11 @@ def task4():
 
 #task1_1()
 #task1_2()
-#task1_3()
+task1_3()
 
 #task2_1()
 #task2_2()
 
-task3()
+#task3()
 
 #task4()    

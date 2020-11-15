@@ -22,7 +22,7 @@ class ForestFires:
 
         plt.clf()
         plt.scatter(tree_coordinates_x, tree_coordinates_y, color='green', label='Trees')
-        plt.scatter(fire_coordinates_x, fire_coordinates_y, color='orange', label='Fire')
+        #plt.scatter(fire_coordinates_x, fire_coordinates_y, color='orange', label='Fire')
         plt.axis([-2, self.N + 2, -2, self.N + 2])
         plt.title('Forest Fire')
         plt.draw()
@@ -121,7 +121,7 @@ class ForestFires:
         self.draw_forest_fire()
                     
 def task1():
-    SOC = ForestFires(N=128, p=0.0005, f=0.0001)
+    SOC = ForestFires(N=128, p=0.1, f=1)
     while(1):
         SOC.step()
                 

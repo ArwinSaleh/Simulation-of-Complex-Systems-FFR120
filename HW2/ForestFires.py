@@ -26,7 +26,10 @@ class ForestFires:
         plt.axis([-2, self.N + 2, -2, self.N + 2])
         plt.title('Forest Fire')
         plt.draw()
-        plt.pause(0.001)
+        if len(self.fire) > 0:
+            plt.pause(0.5)
+        else:
+            plt.pause(0.00001)
 
     def tree_probability(self):
         r = rnd.uniform(0, 1)
@@ -107,6 +110,7 @@ class ForestFires:
                         done = True
 
         self.draw_forest_fire()
+        self.fire[self.fire == 1] = 0
 
     def cpu_step(self):
         queues = list()

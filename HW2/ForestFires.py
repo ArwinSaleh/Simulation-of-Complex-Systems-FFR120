@@ -161,7 +161,7 @@ class ForestFires:
         self.draw_forest_fire()
                     
 def task1():
-    SOC = ForestFires(N=128, p=0.001, f=0.1, GLOBE=True)
+    SOC = ForestFires(N=128, p=0.01, f=0.1, GLOBE=False)
 
     for i in range(10000):
         SOC.step(DRAW=False)

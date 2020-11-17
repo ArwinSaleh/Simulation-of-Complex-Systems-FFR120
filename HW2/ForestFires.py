@@ -8,7 +8,7 @@ from numpy import savetxt
 from numpy import genfromtxt
 
 class ForestFires:
-    def __init__(self, N, p, f):
+    def __init__(self, N, p, f, GLOBE=True):
         self.N = N
         self.p = p
         self.f = f
@@ -19,6 +19,7 @@ class ForestFires:
         self.total_trees_data = list()
         self.trees_data = 0
         self.fires_data = 0
+        self.GLOBE = GLOBE
     
     def draw_forest_fire(self):
 
@@ -65,39 +66,26 @@ class ForestFires:
             self.fire[i, j] = 1
     
     def burn_neighbours(self, i, j):
-        
         if i > 0:
             self.burn_tree(i-1, j)
         else:
-            self.burn_tree(self.N-1, j)
-
-        
+            if self.GLOBE:
+                self.burn_tree(self.N-1, j)
         if i < self.N - 1:
-            if self.trees[i+1, j] == 1:
-                self.trees[i+1, j] = 0
-                self.fire[i+1, j] = 1
+            self.burn_tree(i+1, j)
         else:
-            if self.trees[0, j] == 1:
-                self.trees[0, j] = 0
-                self.fire[0, j] = 1
-        
+            if self.GLOBE:
+                self.burn_tree(0, j)
         if j < self.N - 1:
-            if self.trees[i, j+1] == 1:
-                self.trees[i, j+1] = 0
-                self.fire[i, j+1] = 1
+            self.burn_tree(i, j+1)
         else:
-            if self.trees[i, 0] == 1:
-                self.trees[i, 0] = 0
-                self.fire[i, 0] = 1
-        
+            if self.GLOBE:
+                self.burn_tree(i, 0)
         if j > 0:
-            if self.trees[i, j-1] == 1:
-                self.trees[i, j-1] = 0
-                self.fire[i, j-1] = 1
+            self.burn_tree(i, j-1)
         else:
-            if self.trees[i, self.N-1] == 1:
-                self.trees[i, self.N-1] = 0
-                self.fire[i, self.N-1]
+            if self.GLOBE:
+                self.burn_tree(i, self.N-1)
 
     def probabilities(self, q):
         tree_prob = self.tree_probability()
@@ -173,10 +161,10 @@ class ForestFires:
         self.draw_forest_fire()
                     
 def task1():
-    SOC = ForestFires(N=128, p=0.01, f=0.1)
+    SOC = ForestFires(N=128, p=0.01, f=0.1, GLOBE=True)
 
     for i in range(10000):
-        SOC.step(DRAW=True)
+        SOC.step(DRAW=False)
         print("TIME STEP: " + str(i + 1))
 
     # Sort data

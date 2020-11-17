@@ -3,6 +3,9 @@ from matplotlib import pyplot as plt
 import numpy.random as rnd
 import multiprocessing
 from multiprocessing import Process, Queue
+from numpy import asarray
+from numpy import savetxt
+from numpy import genfromtxt
 
 class ForestFires:
     def __init__(self, N, p, f):
@@ -12,6 +15,10 @@ class ForestFires:
         self.trees = np.zeros((self.N, self.N))
         self.fire = np.zeros((self.N, self.N))
         self.CPU_THREADS = multiprocessing.cpu_count()
+        self.burned_cluster_data = list()
+        self.total_trees_data = list()
+        self.trees_data = 0
+        self.fires_data = 0
     
     def draw_forest_fire(self):
 
@@ -26,7 +33,7 @@ class ForestFires:
         plt.axis([-2, self.N + 2, -2, self.N + 2])
         plt.title('Forest Fire')
         plt.draw()
-        if len(self.fire) > 0:
+        if np.any(self.fire == 1) > 0:
             plt.pause(0.5)
         else:
             plt.pause(0.00001)
@@ -60,24 +67,37 @@ class ForestFires:
     def burn_neighbours(self, i, j):
         
         if i > 0:
-            if self.trees[i-1, j] == 1:
-                self.trees[i-1, j] = 0
-                self.fire[i-1, j] = 1
+            self.burn_tree(i-1, j)
+        else:
+            self.burn_tree(self.N-1, j)
+
         
         if i < self.N - 1:
             if self.trees[i+1, j] == 1:
                 self.trees[i+1, j] = 0
                 self.fire[i+1, j] = 1
+        else:
+            if self.trees[0, j] == 1:
+                self.trees[0, j] = 0
+                self.fire[0, j] = 1
         
         if j < self.N - 1:
             if self.trees[i, j+1] == 1:
                 self.trees[i, j+1] = 0
                 self.fire[i, j+1] = 1
+        else:
+            if self.trees[i, 0] == 1:
+                self.trees[i, 0] = 0
+                self.fire[i, 0] = 1
         
         if j > 0:
             if self.trees[i, j-1] == 1:
                 self.trees[i, j-1] = 0
                 self.fire[i, j-1] = 1
+        else:
+            if self.trees[i, self.N-1] == 1:
+                self.trees[i, self.N-1] = 0
+                self.fire[i, self.N-1]
 
     def probabilities(self, q):
         tree_prob = self.tree_probability()
@@ -89,13 +109,15 @@ class ForestFires:
         y = rnd.randint(0, self.N)
         return (x, y)
 
-    def step(self):
+    def step(self, DRAW=True):
+        empty_sites_x = np.where(self.trees == 0)[0]
+        empty_sites_y = np.where(self.trees == 0)[1]
+        for empty_site in range(len(empty_sites_x)):
+            should_grow = self.tree_probability()
+            if should_grow:
+                self.grow_tree(empty_sites_x[empty_site], empty_sites_y[empty_site])
         (i, j) = self.random_position()
-        should_grow = self.tree_probability()
         should_burn = self.fire_probability()
-        if should_grow:
-            self.grow_tree(i, j)
-        (i, j) = self.random_position()
         if should_burn:
             self.burn_tree(i, j)
             done = False
@@ -107,9 +129,12 @@ class ForestFires:
                         self.burn_neighbours(burning_trees_x[i], burning_trees_y[i])            
                     burning_trees_next_x = np.where(self.fire == 1)[0]
                     if np.sum(burning_trees_x) == np.sum(burning_trees_next_x):
+                        self.burned_cluster_data.append(np.sum(self.fire))
+                        self.total_trees_data.append(np.sum(self.trees))
+                        print("BURNED CLUSTER SIZE: " + str(self.burned_cluster_data) + "\n\nTOTAL NUMBER OF TREES: " + str(self.total_trees_data))
                         done = True
-
-        self.draw_forest_fire()
+        if DRAW:
+            self.draw_forest_fire()
         self.fire[self.fire == 1] = 0
 
     def cpu_step(self):
@@ -148,8 +173,17 @@ class ForestFires:
         self.draw_forest_fire()
                     
 def task1():
-    SOC = ForestFires(N=128, p=1, f=1)
-    while(1):
-        SOC.step()
+    SOC = ForestFires(N=128, p=0.01, f=0.1)
+
+    for i in range(10000):
+        SOC.step(DRAW=True)
+        print("TIME STEP: " + str(i + 1))
+
+    # Sort data
+    SOC.total_trees_data = sorted(SOC.total_trees_data, reverse=True)
+    SOC.burned_cluster_data = sorted(SOC.burned_cluster_data, reverse=True)
+
+    savetxt("trees_p" + str(SOC.p) + "_f" + str(SOC.f) + ".csv", asarray(SOC.total_trees_data), delimiter=',')
+    savetxt("fires_p" + str(SOC.p) + "_f" + str(SOC.f) + ".csv", asarray(SOC.burned_cluster_data), delimiter=',')
                 
 task1()

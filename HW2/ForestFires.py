@@ -20,6 +20,7 @@ class ForestFires:
         self.trees_data = 0
         self.fires_data = 0
         self.GLOBE = GLOBE
+        self.time_step = 1
     
     def draw_forest_fire(self):
 
@@ -32,9 +33,10 @@ class ForestFires:
         plt.scatter(tree_coordinates_x, tree_coordinates_y, color='green', label='Trees')
         plt.scatter(fire_coordinates_x, fire_coordinates_y, color='orange', label='Fire')
         plt.axis([-2, self.N + 2, -2, self.N + 2])
-        plt.title('Forest Fire')
+        plt.title('p = ' + str(self.p) + '      f = ' + str(self.f) + '         p/f = ' + str(self.p / self.f))
         plt.draw()
         if np.any(self.fire == 1) > 0:
+            plt.savefig('burned_cluster_step' + str(self.time_step))
             plt.pause(0.5)
         else:
             plt.pause(0.00001)
@@ -161,11 +163,12 @@ class ForestFires:
         self.draw_forest_fire()
                     
 def task1():
-    SOC = ForestFires(N=128, p=0.01, f=0.1, GLOBE=False)
+    SOC = ForestFires(N=128, p=0.001, f=0.001, GLOBE=True)
 
     for i in range(10000):
-        SOC.step(DRAW=False)
+        SOC.step(DRAW=True)
         print("TIME STEP: " + str(i + 1))
+        SOC.time_step += 1
 
     # Sort data
     SOC.total_trees_data = sorted(SOC.total_trees_data, reverse=True)

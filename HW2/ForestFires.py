@@ -207,9 +207,9 @@ def task2_INIT():
     savetxt("fires_p" + str(SOC.p) + "_f" + str(SOC.f) + "_INIT.csv", asarray(SOC.burned_cluster_data), delimiter=',')
 
 def finite_size(lattice):
-    SOC = ForestFires(N=lattice, p=0.001, f=0.05, GLOBE=True, SNAPSHOT=False)
+    SOC = ForestFires(N=lattice, p=0.001, f=0.1, GLOBE=True, SNAPSHOT=False)
     SOC.initialize_trees()
-    for i in range(10000):
+    for i in range(5000):
         SOC.step(DRAW=False)
         print("TIME STEP: " + str(i + 1))
         SOC.time_step += 1
@@ -222,11 +222,11 @@ def finite_size(lattice):
     savetxt("N_" + str(SOC.N) + "_fires_p" + str(SOC.p) + "_f" + str(SOC.f) + ".csv", asarray(SOC.burned_cluster_data), delimiter=',')
 
 def task4():
-    lattices = [8, 16, 32, 64, 128, 256, 512]
+    lattices = [512]
     for lattice in lattices:
         finite_size(lattice)
 
 #task1()
 #task2_NOT_INIT()
 #task2_INIT()
-#task4()
+task4()

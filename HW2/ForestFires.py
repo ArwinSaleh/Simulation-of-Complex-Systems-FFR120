@@ -8,7 +8,7 @@ from numpy import savetxt
 from numpy import genfromtxt
 
 class ForestFires:
-    def __init__(self, N, p, f, GLOBE=True):
+    def __init__(self, N, p, f, GLOBE=True, SNAPSHOT=False):
         self.N = N
         self.p = p
         self.f = f
@@ -20,8 +20,13 @@ class ForestFires:
         self.trees_data = 0
         self.fires_data = 0
         self.GLOBE = GLOBE
+        self.SNAPSHOT = SNAPSHOT
         self.time_step = 1
-    
+
+    def initialize_trees(self):
+        for i in range(int(0.25 * self.N ** 2)):
+            (x, y) = self.random_position()
+            self.grow_tree(x, y)
     def draw_forest_fire(self):
 
         tree_coordinates_x = np.where(self.trees == 1)[0]
@@ -36,7 +41,8 @@ class ForestFires:
         plt.title('p = ' + str(self.p) + '      f = ' + str(self.f) + '         p/f = ' + str(self.p / self.f))
         plt.draw()
         if np.any(self.fire == 1) > 0:
-            plt.savefig('burned_cluster_step' + str(self.time_step))
+            if self.SNAPSHOT:
+                plt.savefig('burned_cluster_step' + str(self.time_step))
             plt.pause(0.5)
         else:
             plt.pause(0.00001)
@@ -127,7 +133,7 @@ class ForestFires:
             self.draw_forest_fire()
         self.fire[self.fire == 1] = 0
 
-    def cpu_step(self):
+    def cpu_step(self):     # Currently not working
         queues = list()
         threads = list()
 
@@ -163,10 +169,18 @@ class ForestFires:
         self.draw_forest_fire()
                     
 def task1():
-    SOC = ForestFires(N=128, p=0.001, f=0.001, GLOBE=True)
+    SOC = ForestFires(N=128, p=0.001, f=0.001, GLOBE=True, SNAPSHOT=True)
 
     for i in range(10000):
         SOC.step(DRAW=True)
+        print("TIME STEP: " + str(i + 1))
+        SOC.time_step += 1
+                
+def task2_NOT_INIT():
+    SOC = ForestFires(N=128, p=0.001, f=0.05, GLOBE=True, SNAPSHOT=False)
+
+    for i in range(10000):
+        SOC.step(DRAW=False)
         print("TIME STEP: " + str(i + 1))
         SOC.time_step += 1
 
@@ -174,7 +188,45 @@ def task1():
     SOC.total_trees_data = sorted(SOC.total_trees_data, reverse=True)
     SOC.burned_cluster_data = sorted(SOC.burned_cluster_data, reverse=True)
 
-    savetxt("trees_p" + str(SOC.p) + "_f" + str(SOC.f) + ".csv", asarray(SOC.total_trees_data), delimiter=',')
-    savetxt("fires_p" + str(SOC.p) + "_f" + str(SOC.f) + ".csv", asarray(SOC.burned_cluster_data), delimiter=',')
-                
-task1()
+    savetxt("trees_p" + str(SOC.p) + "_f" + str(SOC.f) + "_NOT_INIT.csv", asarray(SOC.total_trees_data), delimiter=',')
+    savetxt("fires_p" + str(SOC.p) + "_f" + str(SOC.f) + "_NOT_INIT.csv", asarray(SOC.burned_cluster_data), delimiter=',')
+
+def task2_INIT():
+    SOC = ForestFires(N=128, p=0.001, f=0.05, GLOBE=True, SNAPSHOT=False)
+    SOC.initialize_trees()
+    for i in range(10000):
+        SOC.step(DRAW=False)
+        print("TIME STEP: " + str(i + 1))
+        SOC.time_step += 1
+
+    # Sort data
+    SOC.total_trees_data = sorted(SOC.total_trees_data, reverse=True)
+    SOC.burned_cluster_data = sorted(SOC.burned_cluster_data, reverse=True)
+
+    savetxt("trees_p" + str(SOC.p) + "_f" + str(SOC.f) + "_INIT.csv", asarray(SOC.total_trees_data), delimiter=',')
+    savetxt("fires_p" + str(SOC.p) + "_f" + str(SOC.f) + "_INIT.csv", asarray(SOC.burned_cluster_data), delimiter=',')
+
+def finite_size(lattice):
+    SOC = ForestFires(N=lattice, p=0.001, f=0.05, GLOBE=True, SNAPSHOT=False)
+    SOC.initialize_trees()
+    for i in range(10000):
+        SOC.step(DRAW=False)
+        print("TIME STEP: " + str(i + 1))
+        SOC.time_step += 1
+
+    # Sort data
+    SOC.total_trees_data = sorted(SOC.total_trees_data, reverse=True)
+    SOC.burned_cluster_data = sorted(SOC.burned_cluster_data, reverse=True)
+
+    savetxt("N_" + str(SOC.N) + "_trees_p" + str(SOC.p) + "_f" + str(SOC.f) + ".csv", asarray(SOC.total_trees_data), delimiter=',')
+    savetxt("N_" + str(SOC.N) + "_fires_p" + str(SOC.p) + "_f" + str(SOC.f) + ".csv", asarray(SOC.burned_cluster_data), delimiter=',')
+
+def task4():
+    lattices = [8, 16, 32, 64, 128, 256, 512]
+    for lattice in lattices:
+        finite_size(lattice)
+
+#task1()
+#task2_NOT_INIT()
+#task2_INIT()
+#task4()

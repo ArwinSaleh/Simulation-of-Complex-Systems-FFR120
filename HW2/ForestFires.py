@@ -23,8 +23,8 @@ class ForestFires:
         self.SNAPSHOT = SNAPSHOT
         self.time_step = 1
 
-    def initialize_trees(self):
-        for i in range(int(0.25 * self.N ** 2)):
+    def initialize_trees(self, PERCENTAGE=0.75):
+        for i in range(int(PERCENTAGE * self.N ** 2)):
             (x, y) = self.random_position()
             self.grow_tree(x, y)
     def draw_forest_fire(self):
@@ -193,7 +193,7 @@ def task2_NOT_INIT():
 
 def task2_INIT():
     SOC = ForestFires(N=128, p=0.001, f=0.05, GLOBE=True, SNAPSHOT=False)
-    SOC.initialize_trees()
+    SOC.initialize_trees(PERCENTAGE=0.25)
     for i in range(10000):
         SOC.step(DRAW=False)
         print("TIME STEP: " + str(i + 1))
@@ -228,5 +228,5 @@ def task4():
 
 #task1()
 #task2_NOT_INIT()
-#task2_INIT()
-task4()
+task2_INIT()
+#task4() 

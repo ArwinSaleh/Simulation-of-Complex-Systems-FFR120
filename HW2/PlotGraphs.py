@@ -38,7 +38,7 @@ def task2():
     plt.xlabel('Relative fire size')
     plt.ylabel('cCDF')
     plt.loglog(rel_fire_size1, x_axis1, linestyle='none', marker='o', markersize=1, label='NO initialized trees')
-    plt.loglog(rel_fire_size2, x_axis2, linestyle='none', marker = 'o', markersize=1, label='0.25 initialized trees')
+    plt.loglog(rel_fire_size2, x_axis2, linestyle='none', marker = 'o', markersize=1, label='0.75 initialized trees')
     plt.xlim(10**(-4), 10**(1))
     plt.title('p = 0.001    f = 0.05        p/f = 0.02')
     plt.legend()
@@ -241,7 +241,7 @@ def task4():
     plt.legend()
     plt.show()
 
-#task2()
+task2()
 #task3_1()
 #task3_2()
-task4()
+#task4()

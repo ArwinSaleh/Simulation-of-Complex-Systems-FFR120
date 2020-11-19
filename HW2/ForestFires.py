@@ -165,6 +165,7 @@ class ForestFires:
                 while(np.sum(self.fire) == 0):
                     (x, y) = self.random_position()
                     self.burn_tree(x, y)
+                print("TEST")
                 done = False
                 while not done:
                     burning_trees_x = np.where(self.fire == 1)[0]
@@ -257,7 +258,7 @@ def task2_INIT():
     savetxt("fires_p" + str(SOC.p) + "_f" + str(SOC.f) + "_INIT.csv", asarray(SOC.burned_cluster_data), delimiter=',')
 
 def task2():
-    SOC = ForestFires(N=128, p=0.001, f=0.05, GLOBE=True, SNAPSHOT=False)
+    SOC = ForestFires(N=128, p=0.001, f=1, GLOBE=True, SNAPSHOT=False)
     for i in range(10000):
         SOC.step_size_dist(DRAW=False)
         print("TIME STEP: " + str(i + 1))

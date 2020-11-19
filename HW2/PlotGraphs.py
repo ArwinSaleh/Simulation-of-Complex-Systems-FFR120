@@ -210,13 +210,12 @@ def task4():
         part_axis7.append(x_axis7[i])
     exponents[6], pcov = curve_fit(exp_func, part_rel_fire7, part_axis7)
 
-    tau = np.zeros((len(exponents), 1))
+    tau = np.zeros((len(exponents), 2))
     for i in range(len(exponents)):
-        tau[i] = 1 - exponents[i, 1]
+        tau[i, 1] = 1 - exponents[i, 1]
     
     inverted_N = [1/8, 1/16, 1/32, 1/64, 1/128, 1/256, 1/512]
 
-    print(tau)
 
     plt.figure()
     plt.xlabel('Relative fire size')
@@ -232,16 +231,16 @@ def task4():
     plt.xlim(10**(-5), 10**(1))
     plt.title('p = 0.001    f = 0.05        p/f = 0.02')
     plt.figure()
-    plt.plot(exponents[:, 1], inverted_N, linestyle='none', marker='o', markersize=4, label='Exponents as a function of 1/N')
-    z = Polynomial.fit(exponents[:, 1], inverted_N, 1)
-    plt.plot(*z.linspace(), label='Linear regression')
-    xs = np.linspace(-0.7, 0)
-    ys = np.zeros((len(xs), 1))
-    plt.plot(xs, ys, linestyle='--', color='red')
+    plt.plot(inverted_N, tau[:, 1], linestyle='none', marker='o', markersize=4, label='Tau as a function of 1/N')
+    plt.xlabel(' 1/N ')
+    plt.ylabel(' tau ')
+    z = Polynomial.fit(inverted_N, tau[:, 1], 1)
+    intercept = tau[6, 1] - inverted_N[6]*1/999999999
+    plt.plot(*z.linspace(), label='Linear regression' + '\nIntercept = ' + str(intercept))
     plt.legend()
     plt.show()
 
-task2()
+#task2()
 #task3_1()
 #task3_2()
-#task4()
+task4()

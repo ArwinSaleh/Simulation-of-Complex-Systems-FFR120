@@ -23,8 +23,12 @@ class ForestFires:
         self.SNAPSHOT = SNAPSHOT
         self.time_step = 1
 
-    def initialize_trees(self, PERCENTAGE=0.75):
-        for i in range(int(PERCENTAGE * self.N ** 2)):
+        # Task 2 helper variables
+        self.burned_cluster_data_ALT = list()
+        self.total_trees_data_ALT = list()
+
+    def initialize_trees(self, DENSITY=0.75):
+        for i in range(int(DENSITY * self.N ** 2)):
             (x, y) = self.random_position()
             self.grow_tree(x, y)
     def draw_forest_fire(self):
@@ -129,6 +133,52 @@ class ForestFires:
                         self.total_trees_data.append(np.sum(self.trees))
                         print("BURNED CLUSTER SIZE: " + str(self.burned_cluster_data) + "\n\nTOTAL NUMBER OF TREES: " + str(self.total_trees_data))
                         done = True
+        
+    def step_size_dist(self, DRAW=True):
+
+        empty_sites_x = np.where(self.trees == 0)[0]
+        empty_sites_y = np.where(self.trees == 0)[1]
+        for empty_site in range(len(empty_sites_x)):
+            should_grow = self.tree_probability()
+            if should_grow:
+                self.grow_tree(empty_sites_x[empty_site], empty_sites_y[empty_site])
+        (i, j) = self.random_position()
+        should_burn = self.fire_probability()
+        if should_burn:
+            self.burn_tree(i, j)
+            done = False
+            if np.sum(self.fire) > 0:
+                forest_density = np.sum(self.trees) / self.N
+                while not done:
+                    burning_trees_x = np.where(self.fire == 1)[0]
+                    burning_trees_y = np.where(self.fire == 1)[1]
+                    for i in range(len(burning_trees_x)):
+                        self.burn_neighbours(burning_trees_x[i], burning_trees_y[i])            
+                    burning_trees_next_x = np.where(self.fire == 1)[0]
+                    if np.sum(burning_trees_x) == np.sum(burning_trees_next_x):
+                        self.burned_cluster_data.append(np.sum(self.fire))
+                        self.total_trees_data.append(np.sum(self.trees))
+                        print("BURNED CLUSTER SIZE: " + str(self.burned_cluster_data) + "\n\nTOTAL NUMBER OF TREES: " + str(self.total_trees_data))
+                        done = True
+                self.fire[self.fire == 1] = 0
+                self.initialize_trees(DENSITY=forest_density)
+                while(np.sum(self.fire) == 0):
+                    (x, y) = self.random_position()
+                    self.burn_tree(x, y)
+                done = False
+                while not done:
+                    burning_trees_x = np.where(self.fire == 1)[0]
+                    burning_trees_y = np.where(self.fire == 1)[1]
+                    for i in range(len(burning_trees_x)):
+                        self.burn_neighbours(burning_trees_x[i], burning_trees_y[i])            
+                    burning_trees_next_x = np.where(self.fire == 1)[0]
+                    if np.sum(burning_trees_x) == np.sum(burning_trees_next_x):
+                        self.burned_cluster_data_ALT.append(np.sum(self.fire))
+                        self.total_trees_data_ALT.append(np.sum(self.trees))
+                        print("BURNED CLUSTER SIZE: " + str(self.burned_cluster_data) + "\n\nTOTAL NUMBER OF TREES: " + str(self.total_trees_data))
+                        done = True
+                
+
         if DRAW:
             self.draw_forest_fire()
         self.fire[self.fire == 1] = 0
@@ -206,6 +256,22 @@ def task2_INIT():
     savetxt("trees_p" + str(SOC.p) + "_f" + str(SOC.f) + "_INIT.csv", asarray(SOC.total_trees_data), delimiter=',')
     savetxt("fires_p" + str(SOC.p) + "_f" + str(SOC.f) + "_INIT.csv", asarray(SOC.burned_cluster_data), delimiter=',')
 
+def task2():
+    SOC = ForestFires(N=128, p=0.001, f=0.05, GLOBE=True, SNAPSHOT=False)
+    for i in range(10000):
+        SOC.step_size_dist(DRAW=False)
+        print("TIME STEP: " + str(i + 1))
+        SOC.time_step += 1
+
+    # Sort data
+    SOC.total_trees_data = sorted(SOC.total_trees_data, reverse=True)
+    SOC.burned_cluster_data = sorted(SOC.burned_cluster_data, reverse=True)
+
+    savetxt("trees_p" + str(SOC.p) + "_f" + str(SOC.f) + "_TASK2.csv", asarray(SOC.total_trees_data), delimiter=',')
+    savetxt("fires_p" + str(SOC.p) + "_f" + str(SOC.f) + "_TASK2.csv", asarray(SOC.burned_cluster_data), delimiter=',')
+    savetxt("trees_p" + str(SOC.p) + "_f" + str(SOC.f) + "_TASK2_ALT.csv", asarray(SOC.total_trees_data_ALT), delimiter=',')
+    savetxt("fires_p" + str(SOC.p) + "_f" + str(SOC.f) + "_TASK2_ALT.csv", asarray(SOC.burned_cluster_data_ALT), delimiter=',')
+
 def finite_size(lattice):
     SOC = ForestFires(N=lattice, p=0.001, f=0.1, GLOBE=True, SNAPSHOT=False)
     SOC.initialize_trees()
@@ -228,5 +294,6 @@ def task4():
 
 #task1()
 #task2_NOT_INIT()
-task2_INIT()
+#task2_INIT()
+task2()
 #task4() 

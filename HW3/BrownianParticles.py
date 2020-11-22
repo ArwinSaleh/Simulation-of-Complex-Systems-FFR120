@@ -9,8 +9,8 @@ class BrownianParticles:
         self.nr_steps = nr_steps
         self.grid_length = grid_length
         self.particles = np.ones((nr_particles, 1))
-        self.X = np.zeros((nr_particles, 1))
-        self.Y = np.zeros((nr_particles, 1))
+        self.X = np.random.uniform(-grid_length, grid_length, size=(nr_particles, 1))
+        self.Y = np.random.uniform(-grid_length, grid_length, size=(nr_particles, 1))
         self.velocities = np.zeros((nr_particles, 2))
         self.particle_historyX = list()
         self.particle_historyY = list()
@@ -55,7 +55,7 @@ class BrownianParticles:
                 self.historyY[i].append(float(self.Y[i]))
 
 def main():
-    brown = BrownianParticles(nr_particles=50, grid_length=100, nr_steps=1000, D_T=5, D_R=5, v=10)
+    brown = BrownianParticles(nr_particles=20, grid_length=50, nr_steps=1000, D_T=0.5, D_R=0.5, v=0.1)
     brown.step()
 
 main()

@@ -15,8 +15,8 @@ class BrownianParticles:
         self.nr_steps = nr_steps
         self.grid_length = grid_length
         self.active_particles = np.ones((nr_particles, 1))  
-        self.X = np.random.uniform(grid_length/4, 3*grid_length/4, size=(nr_particles, 1))
-        self.Y = np.random.uniform(grid_length/4, 3*grid_length/4, size=(nr_particles, 1))
+        self.X = np.random.uniform(0, grid_length, size=(nr_particles, 1))
+        self.Y = np.random.uniform(0, grid_length, size=(nr_particles, 1))
         self.velocities = np.zeros((nr_particles, 2))
         self.particle_historyX = list()
         self.particle_historyY = list()
@@ -28,7 +28,7 @@ class BrownianParticles:
         self.T0 = T0
         self.r_c=r_c
         self.theta = np.random.uniform(-1, 1, size=(nr_particles, 1))
-        self.v = np.random.uniform(-5, 5, size=(nr_particles, 1))
+        self.v = np.random.uniform(-0.000001, 0.000001, size=(nr_particles, 1))
         self.tau = tau
         self.time_step = 1
         self.DRAW = DRAW
@@ -39,7 +39,7 @@ class BrownianParticles:
         
         if self.DRAW_PATH:
             for i in range(self.nr_particles):
-                    plt.plot(self.historyX[i], self.historyY[i], '-o', markevery=[len(self.particle_historyX)-1], label='v = ' + str(self.v[i]) + " \u03BCm/s")
+                    plt.plot(self.historyX[i], self.historyY[i], '.', markevery=[len(self.particle_historyX)-1], label='v = ' + str(self.v[i]) + " \u03BCm/s")
         else:
             plt.plot(self.X, self.Y, '.', markersize=10)
 
@@ -96,17 +96,34 @@ class BrownianParticles:
     
     def compute_torque(self, n):
         inactive_particles = np.where(self.active_particles == 0)[0]
-        active_X_tmp = np.delete(self.X, inactive_particles)
-        active_Y_tmp = np.delete(self.Y, inactive_particles)
-        active_X = np.delete(active_X_tmp, np.where(self.active_particles==n))   # n =/= i
-        active_Y = np.delete(active_Y_tmp, np.where(self.active_particles==n))   # n =/= i
+        active_X = np.delete(self.X, inactive_particles)
+        active_Y = np.delete(self.Y, inactive_particles)
+        active_X = np.delete(self.X, 0)
+        active_Y = np.delete(self.Y, 0)
         
         v_nx = self.velocities[n, 0]
         v_ny = self.velocities[n, 1]
-        v_n_r_ni = v_nx * np.add(np.abs(np.subtract(self.X[n], active_X)), np.abs(np.subtract(self.Y[n], active_Y)))   
+        '''
+        v_n = np.array([[v_nx, v_ny],]*(self.nr_particles-1)).transpose()
+        v_n = v_n / np.linalg.norm(v_n)
+        v_n_r_ni = v_n *   
         r_ni_2 = np.power(np.add(np.abs(np.subtract(self.X[n], active_X)), np.abs(np.subtract(self.Y[n], active_Y))), 2)
         cross = np.subtract(v_nx * (np.abs(np.subtract(self.Y[n], active_Y))), v_ny * np.abs(np.subtract(self.X[n], active_X)))
-        T_n = self.T0 * np.multiply(np.divide(v_n_r_ni, r_ni_2), cross)
+        # Cross = Vx * (Yn - Yi) - Vy * (Xn - Xi)
+        T_n = np.multiply(self.T0, np.dot(np.divide(v_n_r_ni, r_ni_2), cross))
+        self.theta[n] += T_n
+        '''
+        v_n = np.array([[v_nx, v_ny],]*(self.nr_particles-1)).transpose()
+        r_ni_2 = np.add(np.power(np.subtract(self.X[n], active_X), 2), np.power(np.subtract(self.Y[n], active_Y), 2))
+        print(r_ni_2)
+        if self.time_step ==2:
+            while True:
+                i=1
+        v_n_hat = v_n / np.linalg.norm(v_n)
+        r_ni = np.array([np.subtract(self.X[n], active_X), np.subtract(self.Y[n], active_Y)])
+        r_ni_hat = r_ni / np.linalg.norm(r_ni)
+        cross = np.subtract(v_n_hat[0] * (np.abs(np.subtract(self.Y[n], active_Y))), v_n_hat[1] * np.abs(np.subtract(self.X[n], active_X)))
+        T_n = np.multiply(self.T0, np.dot(np.divide(np.dot(np.transpose(v_n_hat), r_ni_hat), r_ni_2), cross))
         self.theta[n] += np.sum(T_n)
             
     def step(self, TAU=1, SAVEFIG=False, SAVETHRESH=50, LEGEND=True, MSD=False):
@@ -119,7 +136,8 @@ class BrownianParticles:
                 print("t = " + str(self.time_step))
             for i in range(self.nr_particles):
                 self.update_theta(i)
-                self.compute_torque(i)
+                if self.time_step > 1:
+                    self.compute_torque(i)
                 self.update_velocity(i)
                 self.update_position(i)
                 if MSD:
@@ -189,7 +207,7 @@ def task1():
         t[i] = i
 
 def task2():
-    brown = BrownianParticles(nr_particles=1000, grid_length=250, nr_steps=100, D_T=0.52, D_R=0.36, tau=1, DRAW=True, r_c=100)
+    brown = BrownianParticles(nr_particles=100, grid_length=100, nr_steps=10000, D_T=0.0052, D_R=0.0002, tau=1, DRAW=True, r_c=100, T0=1)
     brown.step(SAVEFIG=False, SAVETHRESH=50, LEGEND=False)
 
     '''

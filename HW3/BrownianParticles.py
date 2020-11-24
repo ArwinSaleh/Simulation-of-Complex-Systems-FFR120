@@ -24,11 +24,7 @@ class BrownianParticles:
         self.historyY = [[] for i in range(0, nr_particles)]
         self.historyMSD = [[] for i in range(0, nr_particles)]
         self.D_T = D_T
-        self.D_R = D_R
-        self.T0 = T0
-        self.r_c=r_c
-        self.theta = np.random.uniform(-1, 1, size=(nr_particles, 1))
-        self.v = np.random.uniform(-0.000001, 0.000001, size=(nr_particles, 1))
+        self.D_R = D_Ri
         self.tau = tau
         self.time_step = 1
         self.DRAW = DRAW

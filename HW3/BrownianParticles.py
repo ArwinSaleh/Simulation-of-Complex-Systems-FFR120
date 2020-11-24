@@ -73,6 +73,9 @@ class BrownianParticles:
             self.X[i] -= self.velocities[i, 0]
         if self.Y[i] < 0:
             self.Y[i] -= self.velocities[i, 1]
+        if self.collision(i):
+            self.X[i] -= self.velocities[i, 0]
+            self.Y[i] -= self.velocities[i, 1]
         self.historyX[i].append(float(self.X[i]))
         self.historyY[i].append(float(self.Y[i]))
 
@@ -113,6 +116,14 @@ class BrownianParticles:
                 self.update_position(i)
                 self.compute_MSD(i, step)
             self.time_step += 1
+
+    def collision(self, i):
+        pop_on_X = np.where(self.X == self.X[i])[0]
+        pop_on_Y = np.where(self.Y == self.Y[i])[0]
+        pop_on_site = np.union1d(pop_on_X, pop_on_Y)
+        if len(pop_on_site) > 1:
+            return True
+        return False
     
     def clear_all(self):
         self.historyX = [[] for i in range(0, self.nr_particles)]
@@ -169,7 +180,7 @@ def task1():
         t[i] = i
 
 def task2():
-    brown = BrownianParticles(nr_particles=100, grid_length=250, nr_steps=100, D_T=0.52, D_R=0.36, tau=1, DRAW=True, r_c=100)
+    brown = BrownianParticles(nr_particles=10, grid_length=250, nr_steps=100, D_T=0.52, D_R=0.36, tau=1, DRAW=True, r_c=100)
     brown.step(SAVEFIG=False, SAVETHRESH=50, LEGEND=False)
     t = np.zeros((brown.nr_steps, 1))
     for i in range(brown.nr_steps):

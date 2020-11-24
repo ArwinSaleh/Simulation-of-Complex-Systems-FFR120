@@ -55,7 +55,7 @@ class BrownianParticles:
         plt.xlabel('x [\u03BCm]')
         plt.ylabel('y [\u03BCm]')
         plt.draw()
-        plt.pause(0.0001)
+        plt.pause(0.0000001)
 
     def update_velocity(self, i):
         Wx = np.random.normal(0, 1)
@@ -115,15 +115,13 @@ class BrownianParticles:
         '''
         v_n = np.array([[v_nx, v_ny],]*(self.nr_particles-1)).transpose()
         r_ni_2 = np.add(np.power(np.subtract(self.X[n], active_X), 2), np.power(np.subtract(self.Y[n], active_Y), 2))
-        print(r_ni_2)
-        if self.time_step ==2:
-            while True:
-                i=1
         v_n_hat = v_n / np.linalg.norm(v_n)
         r_ni = np.array([np.subtract(self.X[n], active_X), np.subtract(self.Y[n], active_Y)])
         r_ni_hat = r_ni / np.linalg.norm(r_ni)
         cross = np.subtract(v_n_hat[0] * (np.abs(np.subtract(self.Y[n], active_Y))), v_n_hat[1] * np.abs(np.subtract(self.X[n], active_X)))
-        T_n = np.multiply(self.T0, np.dot(np.divide(np.dot(np.transpose(v_n_hat), r_ni_hat), r_ni_2), cross))
+        div = np.divide(np.dot(np.transpose(v_n_hat), r_ni_hat), r_ni_2)
+        div[np.isnan(div)] = 0
+        T_n = np.multiply(self.T0, np.dot(div, cross))
         self.theta[n] += np.sum(T_n)
             
     def step(self, TAU=1, SAVEFIG=False, SAVETHRESH=50, LEGEND=True, MSD=False):

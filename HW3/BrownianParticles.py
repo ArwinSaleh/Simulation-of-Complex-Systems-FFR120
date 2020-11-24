@@ -1,13 +1,14 @@
 from math import log
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy.core.fromnumeric import size
 from numpy.lib.function_base import append
 import math
 from numpy import savetxt
 from numpy import asarray
 
 class BrownianParticles:
-    def __init__(self, nr_particles, grid_length, nr_steps, D_T, D_R, v, tau, DRAW=True):
+    def __init__(self, nr_particles, grid_length, nr_steps, D_T, D_R, tau, DRAW=True):
         self.nr_particles = nr_particles
         self.nr_steps = nr_steps
         self.grid_length = grid_length
@@ -23,19 +24,26 @@ class BrownianParticles:
         self.D_T = D_T
         self.D_R = D_R
         self.theta = np.ones((nr_particles, 1))
-        self.v = v
+        self.v = np.random.uniform(0, 1, size=(nr_particles, 1))
         self.tau = tau
         self.time_step = 1
         self.DRAW = DRAW
 
-    def draw_particles(self):
+    def draw_particles(self, LEGEND):
         plt.clf()
-        plt.title('t = ' + str(self.time_step))
         for i in range(self.nr_particles):
-            if len(self.historyX) > 1:
-                plt.plot(self.historyX[i], self.historyY[i], '-o', markevery=[len(self.particle_historyX)-1], label='v = ' + str(self.v[i]))
+            plt.plot(self.historyX[i], self.historyY[i], '-o', markevery=[len(self.particle_historyX)-1], label='v = ' + str(self.v[i]) + " \u03BCm/s")
         plt.axis([-2 - self.grid_length, self.grid_length + 2, -2 - self.grid_length, self.grid_length + 2])
-        plt.legend()
+        if LEGEND:
+            plt.legend()
+        plt.title('D_T = ' + str(self.D_T) + 
+                    "      D_R = " + str(self.D_R) + 
+                    "     Number of Particles = " + 
+                    str(self.nr_particles) + "\nt = " + 
+                    str(self.time_step))
+
+        plt.xlabel('x [\u03BCm]')
+        plt.ylabel('y [\u03BCm]')
         plt.draw()
         plt.pause(0.00000001)
 
@@ -64,10 +72,12 @@ class BrownianParticles:
         MSD /= (self.nr_steps - 1 * (self.tau - 1)) 
         self.historyMSD[i].append(MSD)
             
-    def step(self, TAU=1):
+    def step(self, TAU=1, SAVEFIG=False, SAVETHRESH=50, LEGEND=True):
         for step in range(self.nr_steps):
+            if SAVEFIG and self.time_step == SAVETHRESH+1:
+                plt.savefig('particles_at_50')
             if (self.DRAW):
-                self.draw_particles()
+                self.draw_particles(LEGEND)
             else:
                 print("t = " + str(self.time_step))
             for i in range(self.nr_particles):
@@ -100,16 +110,33 @@ def save_data():
     plt.legend()
     plt.show()
 
-def main():
-    brown = BrownianParticles(nr_particles=4, grid_length=100, nr_steps=1000, D_T=0.22, D_R=0.16, v=[0, 1, 2, 3], tau=1, DRAW=False)
-    brown.step()
+def task1():
+    brown = BrownianParticles(nr_particles=4, grid_length=100, nr_steps=100, D_T=0.22, D_R=0.16, tau=1, DRAW=True)
+    brown.v = [0, 0.3, 0.6, 0.9]
+    brown.step(SAVEFIG=True, SAVETHRESH=50)
     t = np.zeros((brown.nr_steps, 1))
     for i in range(brown.nr_steps):
         t[i] = i
     plt.figure()
     for i in range(0, brown.nr_particles):
-        plt.loglog(t, brown.historyMSD[i], label='v = ' + str(brown.v[i]))
+        plt.loglog(t, brown.historyMSD[i], label='v = ' + str(brown.v[i]) + " \u03BCm/s")
     plt.legend()
+    plt.xlabel('t')
+    plt.ylabel('MSD [\u03BCm^2]')
     plt.show()
 
-main()
+def task2():
+    brown = BrownianParticles(nr_particles=100, grid_length=100, nr_steps=100, D_T=0.22, D_R=0.16, tau=1, DRAW=True)
+    brown.step(SAVEFIG=True, SAVETHRESH=50, LEGEND=False)
+    t = np.zeros((brown.nr_steps, 1))
+    for i in range(brown.nr_steps):
+        t[i] = i
+    plt.figure()
+    for i in range(0, brown.nr_particles):
+        plt.loglog(t, brown.historyMSD[i], label='v = ' + str(brown.v[i]) + " \u03BCm/s")
+    #plt.legend()
+    plt.xlabel('t')
+    plt.ylabel('MSD [\u03BCm^2]')
+    plt.show()
+
+task2()

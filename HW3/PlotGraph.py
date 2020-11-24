@@ -2,19 +2,18 @@ from numpy import genfromtxt
 import numpy as np
 import matplotlib.pyplot as plt
 
-tau1 = genfromtxt("tau = 1.csv", delimiter=",")
-tau2 = genfromtxt("tau = 1.csv", delimiter=",")
-tau3 = genfromtxt("tau = 1.csv", delimiter=",")
-tau4 = genfromtxt("tau = 1.csv", delimiter=",")
-tau5 = genfromtxt("tau = 1.csv", delimiter=",")
 
-MSD = list()
+run = genfromtxt("run_1.csv", delimiter=",")
+for i in range(1, 10):
+    run = np.add(genfromtxt("run_" + str(i) + ".csv", delimiter=","), genfromtxt("run_" + str(i+1) + ".csv", delimiter=","))
 
-tau1avg = np.sum(tau1[0, :]) / len(tau1[0])
-tau2avg = np.sum(tau1[0, :]) / len(tau2[0])
-tau3avg = np.sum(tau1[0, :]) / len(tau3[0])
-tau4avg = np.sum(tau1[0, :]) / len(tau4[0])
-tau5avg = np.sum(tau1[0, :]) / len(tau5[0])
+run = np.divide(run, 10)
 
-plt.loglog([1, 2, 3, 4, 5], [tau1avg, tau2avg, tau3avg, tau4avg, tau5avg])
+t = np.zeros((len(run[0]), 1))
+for i in range(len(t)):
+        t[i] = i
+
+for i in range(len(run[:, 0])):
+    plt.loglog(t, run[i])
+
 plt.show()

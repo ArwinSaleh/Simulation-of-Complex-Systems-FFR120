@@ -220,7 +220,7 @@ def task1():
         t[i] = i
 
 def task2():
-    brown = BrownianParticles(nr_particles=1000, grid_length=100, nr_steps=1000, D_T=0.085, D_R=0.001, tau=1, DRAW=True, r_c=5, T0=0.75)
+    brown = BrownianParticles(nr_particles=1000, grid_length=100, nr_steps=1000, D_T=0.085, D_R=0.0001, tau=1, DRAW=True, r_c=75, T0=0.75)
     brown.step(SAVEFIG=False, LEGEND=False, SAVE_DATA=False)
 
 def task2_test():

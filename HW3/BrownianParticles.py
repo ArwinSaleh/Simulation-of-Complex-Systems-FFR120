@@ -130,23 +130,40 @@ class BrownianParticles:
         self.historyMSD[i].append(MSD)
     
     def compute_torque(self, n):
-        #active_X = np.delete(self.X, np.where(self.X==self.X[n]))   # n =/= i
-        #active_Y = np.delete(self.Y, np.where(self.Y==self.Y[n]))   # n =/= i
+        
         active_X = self.X[np.where(self.X != self.X[n])[0]]
         active_Y = self.Y[np.where(self.Y != self.Y[n])[0]]
 
         v_nx = self.velocities[n, 0]
         v_ny = self.velocities[n, 1]
+        v_n = np.array([v_nx, v_ny])
+        v_n_hat = v_n / np.linalg.norm(v_n)
+        r_ni = np.array([np.abs(np.subtract(self.X[n], active_X)), np.abs(np.subtract(self.Y[n], active_Y))])
+        r_ni_hat = r_ni / np.linalg.norm(r_ni)
         
-        v_n_r_ni = v_nx * np.add(np.abs(np.subtract(self.X[n], active_X)), v_ny * np.abs(np.subtract(self.Y[n], active_Y)))   
-        r_ni_2 = np.power(np.add(np.abs(np.subtract(self.X[n], active_X)), np.abs(np.subtract(self.Y[n], active_Y))), 2)
-        cross = np.subtract(v_nx * (np.abs(np.subtract(self.Y[n], active_Y))), v_ny * np.abs(np.subtract(self.X[n], active_X)))
+        v_n_r_ni =  np.add(v_n_hat[0] * r_ni_hat[0], v_n_hat[1] * r_ni_hat[1])   
+        r_ni_2 = np.power(r_ni, 2)
+        #r_ni_2 = np.power(np.add(np.abs(np.subtract(self.X[n], active_X)), np.abs(np.subtract(self.Y[n], active_Y))), 2)
+        cross = np.subtract(v_n_hat[0] * np.abs(r_ni_hat[0]), v_n_hat[1] * np.abs(r_ni_hat[1]))
         sum1 = self.T0 * np.sum(np.multiply(np.divide(v_n_r_ni, r_ni_2), cross))
 
         T_n = sum1
 
         if T_n != 0:
             self.theta[n] += T_n
+        '''
+        active_particles = np.where(self.active_particles == 1)[0]
+        T_n = 0
+        v_nx = self.velocities[n, 0]
+        v_ny = self.velocities[n, 1]
+        for i in range(len(active_particles)):
+            if n != i:
+                v_n_r_ni = v_nx * abs(self.X[n] - self.X[i]) + v_ny * abs(self.Y[n] - self.Y[i])
+                r_ni_2 = ((abs(self.X[n] - self.X[i])) + abs(self.Y[n] - self.Y[i]))**2
+                T_n += self.T0 * (v_n_r_ni / r_ni_2) * (v_nx * (abs(self.Y[n] - self.Y[i]) - v_ny * abs(self.X[n] - self.X[i])))
+
+        self.theta[n] += T_n
+        '''
     
     def compute_torque_passive(self, n):
         active_X = np.delete(self.X, np.where(self.X==self.X[n]))   # n =/= i
@@ -190,7 +207,7 @@ class BrownianParticles:
             else:
                 print("t = " + str(self.time_step))
             for i in range(self.nr_particles):
-                self.update_theta(i)
+                #self.update_theta(i)
                 if self.time_step > 1:
                     if PASSIVE:
                         self.compute_torque_passive(i)
@@ -275,7 +292,7 @@ def task1():
         t[i] = i
 
 def task2():
-    brown = BrownianParticles(nr_particles=10, grid_length=100, nr_steps=1000, D_T=0.0, D_R=0.00, active_factor=0.2, tau=1, DRAW=True, r_c=5, T0=1, init_v=1)
+    brown = BrownianParticles(nr_particles=20, grid_length=10, nr_steps=1000, D_T=0.0, D_R=0.00, active_factor=0.2, tau=1, DRAW=True, r_c=1, T0=0.5, init_v=0.07)
     brown.step(SAVEFIG=False, LEGEND=False, SAVE_DATA=False, PASSIVE=False)
 
 def task2_test():

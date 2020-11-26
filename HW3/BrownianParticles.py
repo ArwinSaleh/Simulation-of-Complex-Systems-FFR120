@@ -11,7 +11,7 @@ import pandas as pd
 from numpy import genfromtxt
 
 class BrownianParticles:
-    def __init__(self, nr_particles, grid_length, nr_steps, D_T, D_R, tau, DRAW=True, T0=0, r_c=5, DRAW_PATH=False):
+    def __init__(self, nr_particles, grid_length, nr_steps, D_T, D_R, tau, DRAW=True, T0=0, r_c=5, active_factor=0.2, DRAW_PATH=False):
         self.nr_particles = nr_particles
         self.nr_steps = nr_steps
         self.grid_length = grid_length
@@ -36,9 +36,10 @@ class BrownianParticles:
         self.time_step = 1
         self.DRAW = DRAW
         self.DRAW_PATH = DRAW_PATH
+        self.active_factor = active_factor
 
     def initialize_inactive_particles(self):
-        self.active_particles[int(0.2 * self.nr_particles) : self.nr_particles] = 0
+        self.active_particles[int(self.active_factor * self.nr_particles) : self.nr_particles] = 0
 
     def draw_particles(self, LEGEND):
         plt.clf()
@@ -47,8 +48,8 @@ class BrownianParticles:
             for i in range(self.nr_particles):
                     plt.plot(self.historyX[i], self.historyY[i], '.', markevery=[len(self.particle_historyX)-1], label='v = ' + str(self.v[i]) + " \u03BCm/s")
         else:
-            plt.plot(self.X[np.where(self.active_particles==1)], self.Y[np.where(self.active_particles==1)], 'o')
-            plt.plot(self.X[np.where(self.active_particles==0)], self.Y[np.where(self.active_particles==0)], 'o')
+            plt.plot(self.X[np.where(self.active_particles==1)], self.Y[np.where(self.active_particles==1)], 'o', label='Active')
+            plt.plot(self.X[np.where(self.active_particles==0)], self.Y[np.where(self.active_particles==0)], 'o', label='Passive')
 
         if LEGEND:
             plt.legend()
@@ -220,11 +221,11 @@ def task1():
         t[i] = i
 
 def task2():
-    brown = BrownianParticles(nr_particles=1000, grid_length=100, nr_steps=1000, D_T=0.085, D_R=0.001, tau=1, DRAW=True, r_c=5, T0=0.75)
-    brown.step(SAVEFIG=False, LEGEND=False, SAVE_DATA=False)
+    brown = BrownianParticles(nr_particles=1000, grid_length=100, nr_steps=1000, D_T=0.085, D_R=0.001, active_factor=0.2, tau=1, DRAW=True, r_c=5, T0=0.75)
+    brown.step(SAVEFIG=False, LEGEND=True, SAVE_DATA=False)
 
 def task2_test():
-    brown = BrownianParticles(nr_particles=100, grid_length=100, nr_steps=10, D_T=0.0085, D_R=0.00001, tau=1, DRAW=False, r_c=100, T0=0.75)
+    brown = BrownianParticles(nr_particles=100, grid_length=100, nr_steps=10, D_T=0.0085, D_R=0.00001, active_factor=1, tau=1, DRAW=False, r_c=100, T0=0.75)
     brown.step(SAVEFIG=False, LEGEND=False, SAVE_DATA=True)
     #pd.DataFrame(asarray(brown.X_history)).to_csv("HW3/data2/t100000X.csv", header=None)
     xHist = pd.DataFrame(np.reshape(brown.X_history, (brown.nr_particles*brown.nr_steps, 1)), columns=["colummn"])

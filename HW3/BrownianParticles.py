@@ -137,7 +137,7 @@ class BrownianParticles:
         v_nx = self.velocities[n, 0]
         v_ny = self.velocities[n, 1]
         v_n = np.array([v_nx, v_ny])
-        v_n_hat = v_n / np.linalg.norm(v_n)
+        v_n_hat = v_n #/ np.linalg.norm(v_n)
         r_ni = np.array([np.abs(np.subtract(self.X[n], active_X)), np.abs(np.subtract(self.Y[n], active_Y))])
         r_ni_hat = r_ni / np.linalg.norm(r_ni)
         
@@ -174,6 +174,7 @@ class BrownianParticles:
         passive_X = active_X[np.where(self.active_particles==1)[0]]
         passive_Y = active_Y[np.where(self.active_particles==1)[0]]
         
+        '''
         v_nx = self.velocities[n, 0]
         v_ny = self.velocities[n, 1]
         
@@ -191,6 +192,33 @@ class BrownianParticles:
 
         if T_n != 0:
             self.theta[n] += T_n
+
+        '''
+        v_nx = self.velocities[n, 0]
+        v_ny = self.velocities[n, 1]
+
+        v_n = np.array([v_nx, v_ny])
+        v_n_hat = v_n / np.linalg.norm(v_n)
+        r_ni = np.array([np.abs(np.subtract(self.X[n], active_X)), np.abs(np.subtract(self.Y[n], active_Y))])
+        r_ni_hat = r_ni / np.linalg.norm(r_ni)
+
+        v_n = np.array([v_nx, v_ny])
+        v_n_hat = v_n / np.linalg.norm(v_n)
+        r_nm = np.array([np.abs(np.subtract(self.X[n], passive_X)), np.abs(np.subtract(self.Y[n], passive_Y))])
+        r_nm_hat = r_nm / np.linalg.norm(r_nm)
+        
+        v_n_r_ni =  np.add(v_n_hat[0] * r_ni_hat[0], v_n_hat[1] * r_ni_hat[1])   
+        r_ni_2 = np.power(r_ni, 2)
+        cross = np.subtract(v_n_hat[0] * np.abs(r_ni_hat[0]), v_n_hat[1] * np.abs(r_ni_hat[1]))
+        sum1 = self.T0 * np.sum(np.multiply(np.divide(v_n_r_ni, r_ni_2), cross))
+
+        v_n_r_nm =  np.add(v_n_hat[0] * r_nm_hat[0], v_n_hat[1] * r_nm_hat[1])   
+        r_nm_2 = np.power(r_nm, 2)
+        cross = np.subtract(v_n_hat[0] * np.abs(r_nm_hat[0]), v_n_hat[1] * np.abs(r_nm_hat[1]))
+        sum2 = self.T0 * np.sum(np.multiply(np.divide(v_n_r_nm, r_nm_2), cross))
+
+        T_n = sum1 - sum2
+        self.theta[n] += T_n
                  
     def step(self, TAU=1, SAVEFIG=False, SAVETHRESH=50, LEGEND=True, MSD=False, SAVE_DATA=False, PASSIVE=True):
         if PASSIVE:
@@ -292,7 +320,7 @@ def task1():
         t[i] = i
 
 def task2():
-    brown = BrownianParticles(nr_particles=20, grid_length=10, nr_steps=1000, D_T=0.0, D_R=0.00, active_factor=0.2, tau=1, DRAW=True, r_c=1, T0=0.5, init_v=0.07)
+    brown = BrownianParticles(nr_particles=100, grid_length=10, nr_steps=1000, D_T=0.0, D_R=0.00, active_factor=0.2, tau=1, DRAW=True, r_c=1, T0=0.75, init_v=0.07)
     brown.step(SAVEFIG=False, LEGEND=False, SAVE_DATA=False, PASSIVE=False)
 
 def task2_test():

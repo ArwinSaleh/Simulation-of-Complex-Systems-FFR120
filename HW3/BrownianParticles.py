@@ -9,9 +9,10 @@ from numpy import savetxt
 from numpy import asarray
 import pandas as pd 
 from numpy import genfromtxt
+from pandas.core.accessor import PandasDelegate
 
 class BrownianParticles:
-    def __init__(self, nr_particles, grid_length, nr_steps, D_T, D_R, tau, DRAW=True, T0=0, r_c=5, active_factor=0.2, DRAW_PATH=False):
+    def __init__(self, nr_particles, grid_length, nr_steps, D_T, D_R, tau, DRAW=True, T0=0, r_c=5, active_factor=0.2, DRAW_PATH=False, init_v=1):
         self.nr_particles = nr_particles
         self.nr_steps = nr_steps
         self.grid_length = grid_length
@@ -31,7 +32,8 @@ class BrownianParticles:
         self.T0 = T0
         self.r_c=r_c
         self.theta = np.random.uniform(-1, 1, size=(nr_particles, 1))
-        self.v = np.random.uniform(-0.00001, 0.00001, size=(nr_particles, 1))
+        #self.v = np.random.uniform(-1, 1, size=(nr_particles, 1))
+        self.v = np.ones((nr_particles, 1)) * init_v
         self.tau = tau
         self.time_step = 1
         self.DRAW = DRAW
@@ -94,6 +96,24 @@ class BrownianParticles:
         self.historyX[i].append(float(self.X[i]))
         self.historyY[i].append(float(self.Y[i]))
 
+    def update_position_noPass(self, i):
+
+        self.X[i] += self.velocities[i, 0]
+        self.Y[i] += self.velocities[i, 1]
+        if self.X[i] > self.grid_length:
+            self.X[i] = 0
+        if self.Y[i] > self.grid_length:
+            self.Y[i] = 0
+        if self.X[i] < 0:
+            self.X[i] = self.grid_length
+        if self.Y[i] < 0:
+            self.Y[i] = self.grid_length
+        if self.collision_noPass(i):
+            self.X[i] -= self.velocities[i, 0]
+            self.Y[i] -= self.velocities[i, 1]
+        self.historyX[i].append(float(self.X[i]))
+        self.historyY[i].append(float(self.Y[i]))
+
     def inactive_noise(self, noise_factor):
         r = np.random.uniform(-noise_factor, noise_factor)
 
@@ -110,6 +130,25 @@ class BrownianParticles:
         self.historyMSD[i].append(MSD)
     
     def compute_torque(self, n):
+        #active_X = np.delete(self.X, np.where(self.X==self.X[n]))   # n =/= i
+        #active_Y = np.delete(self.Y, np.where(self.Y==self.Y[n]))   # n =/= i
+        active_X = self.X[np.where(self.X != self.X[n])[0]]
+        active_Y = self.Y[np.where(self.Y != self.Y[n])[0]]
+
+        v_nx = self.velocities[n, 0]
+        v_ny = self.velocities[n, 1]
+        
+        v_n_r_ni = v_nx * np.add(np.abs(np.subtract(self.X[n], active_X)), v_ny * np.abs(np.subtract(self.Y[n], active_Y)))   
+        r_ni_2 = np.power(np.add(np.abs(np.subtract(self.X[n], active_X)), np.abs(np.subtract(self.Y[n], active_Y))), 2)
+        cross = np.subtract(v_nx * (np.abs(np.subtract(self.Y[n], active_Y))), v_ny * np.abs(np.subtract(self.X[n], active_X)))
+        sum1 = self.T0 * np.sum(np.multiply(np.divide(v_n_r_ni, r_ni_2), cross))
+
+        T_n = sum1
+
+        if T_n != 0:
+            self.theta[n] += T_n
+    
+    def compute_torque_passive(self, n):
         active_X = np.delete(self.X, np.where(self.X==self.X[n]))   # n =/= i
         active_Y = np.delete(self.Y, np.where(self.Y==self.Y[n]))   # n =/= i
         active_X = active_X[np.where(self.active_particles==1)[0]]
@@ -136,8 +175,9 @@ class BrownianParticles:
         if T_n != 0:
             self.theta[n] += T_n
                  
-    def step(self, TAU=1, SAVEFIG=False, SAVETHRESH=50, LEGEND=True, MSD=False, SAVE_DATA=False):
-        self.initialize_inactive_particles()
+    def step(self, TAU=1, SAVEFIG=False, SAVETHRESH=50, LEGEND=True, MSD=False, SAVE_DATA=False, PASSIVE=True):
+        if PASSIVE:
+            self.initialize_inactive_particles()
         for step in range(self.nr_steps):
             if SAVE_DATA:
                 self.X_history.append(self.X)
@@ -152,9 +192,15 @@ class BrownianParticles:
             for i in range(self.nr_particles):
                 self.update_theta(i)
                 if self.time_step > 1:
-                    self.compute_torque(i)
+                    if PASSIVE:
+                        self.compute_torque_passive(i)
+                    else:
+                        self.compute_torque(i)
                 self.update_velocity(i)
-                self.update_position(i)
+                if PASSIVE:
+                    self.update_position(i)
+                else:
+                    self.update_position_noPass(i)
                 if MSD:
                     self.compute_MSD(i, step)
             self.time_step += 1
@@ -165,6 +211,14 @@ class BrownianParticles:
         if len(pop_on_site) > 1:
             return (True, pop_on_site)
         return (False, pop_on_site)
+
+    def collision_noPass(self, i):
+        pop_on_X = np.where(self.X == self.X[i])[0]
+        pop_on_Y = np.where(self.Y == self.Y[i])[0]
+        pop_on_site = np.union1d(pop_on_X, pop_on_Y)
+        if len(pop_on_site) > 1:
+            return True
+        return False
     
     def clear_all(self):
         self.historyX = [[] for i in range(0, self.nr_particles)]
@@ -221,11 +275,11 @@ def task1():
         t[i] = i
 
 def task2():
-    brown = BrownianParticles(nr_particles=1000, grid_length=100, nr_steps=1000, D_T=0.085, D_R=0.001, active_factor=0.2, tau=1, DRAW=True, r_c=5, T0=0.75)
-    brown.step(SAVEFIG=False, LEGEND=True, SAVE_DATA=False)
+    brown = BrownianParticles(nr_particles=10, grid_length=100, nr_steps=1000, D_T=0.0, D_R=0.00, active_factor=0.2, tau=1, DRAW=True, r_c=5, T0=1, init_v=1)
+    brown.step(SAVEFIG=False, LEGEND=False, SAVE_DATA=False, PASSIVE=False)
 
 def task2_test():
-    brown = BrownianParticles(nr_particles=100, grid_length=100, nr_steps=10, D_T=0.0085, D_R=0.00001, active_factor=1, tau=1, DRAW=False, r_c=100, T0=0.75)
+    brown = BrownianParticles(nr_particles=100, grid_length=100, nr_steps=10, D_T=0.0085, D_R=0.00001, active_factor=1, tau=1, DRAW=False, r_c=100, T0=1)
     brown.step(SAVEFIG=False, LEGEND=False, SAVE_DATA=True)
     #pd.DataFrame(asarray(brown.X_history)).to_csv("HW3/data2/t100000X.csv", header=None)
     xHist = pd.DataFrame(np.reshape(brown.X_history, (brown.nr_particles*brown.nr_steps, 1)), columns=["colummn"])

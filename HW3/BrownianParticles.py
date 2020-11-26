@@ -79,13 +79,13 @@ class BrownianParticles:
             self.X[i] += self.velocities[i, 0]
             self.Y[i] += self.velocities[i, 1]
             if self.X[i] > self.grid_length:
-                self.X[i] -= self.velocities[i, 0]
+                self.X[i] = 0
             if self.Y[i] > self.grid_length:
-                self.Y[i] -= self.velocities[i, 1]
+                self.Y[i] = 0
             if self.X[i] < 0:
-                self.X[i] -= self.velocities[i, 0]
+                self.X[i] = self.grid_length
             if self.Y[i] < 0:
-                self.Y[i] -= self.velocities[i, 1]
+                self.Y[i] = self.grid_length
         (collided, particles_on_site) = self.collision(i)
         if collided and self.time_step > 2:
             self.X[particles_on_site] += self.velocities[i, 0]

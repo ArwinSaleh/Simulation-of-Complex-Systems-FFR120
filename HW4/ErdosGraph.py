@@ -37,9 +37,16 @@ class Network:
         self.m = np.sum(self.adj_matrix[np.where(self.adj_matrix==1)])
     
     def init_small_world(self):
+        t = np.linspace(0, 2 * math.pi, self.n)
+        x = np.cos(t)
+        y = np.sin(t)
+
+        for i in range(len(x)):
+            self.G.add_node(i, pos=(x[i], y[i]))
+
         self.adj_matrix = np.zeros((self.n, self.n))
         for i in range(-self.n, self.n):
-            for j in range(1, int(self.n / 2) + 1):
+            for j in range(1, int(self.c / 2) + 1):
                 if (i + j) > self.n - 1:
                     i = (i + j) - self.n
                     self.adj_matrix[i, i + j] = 1
@@ -55,6 +62,13 @@ class Network:
         
         self.m = np.sum(self.adj_matrix[np.where(self.adj_matrix==1)])
 
+    def add_shortcuts(self):
+        for i in range(int(self.m)):
+            r = np.random.uniform()
+            if r < self.p:
+                j = (np.random.randint(self.n), np.random.randint(self.n))
+                self.adj_matrix[j[0], j[1]] = 1
+
     def build_graph(self):
         v1 = np.where(self.adj_matrix == 1)[0]
         v2 = np.where(self.adj_matrix == 1)[1]
@@ -66,7 +80,7 @@ class Network:
         plt.figure()
         
         if CIRCULAR:
-            plt.title('c = ' + str(self.c) + '      n = ' + str(self.n) + '     m = ' + str(self.m))
+            plt.title('p = ' + str(self.p) + '      c = ' + str(self.c) + '      n = ' + str(self.n) + '     m = ' + str(self.m))
             nx.draw_circular(self.G)
         else:
             plt.title('p = ' + str(self.p) + '      n = ' + str(self.n) + '     m = ' + str(self.m))
@@ -89,12 +103,13 @@ def task1():
     plt.show()
 
 def task2():
-    wattStrog = Network(n=10, c=10)
+    wattStrog = Network(n=20, p=0.1, c=5)
     wattStrog.init_small_world()
+    wattStrog.add_shortcuts()
     wattStrog.build_graph()
     wattStrog.plot_graph(CIRCULAR=True)
     plt.show()
 
 if __name__ == "__main__":
     #task1()
-    task2()
+    #task2()

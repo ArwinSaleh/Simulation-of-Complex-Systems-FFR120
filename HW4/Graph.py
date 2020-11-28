@@ -32,10 +32,11 @@ class Graph(object):
 def main():
     g = Graph(5)
 
+    g.add_edge(0, 1)
     g.add_edge(1, 2)
-    g.add_edge(3, 4)
 
-    g.show_graph()
+    #g.show_graph()
+    print(g.adjacency_matrix)
 
 if __name__ == "__main__":
     main()

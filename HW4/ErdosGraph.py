@@ -1,3 +1,4 @@
+from matplotlib.pyplot import sci
 import numpy as np
 from scipy.sparse import csr_matrix
 import math
@@ -5,10 +6,14 @@ import random
 import matplotlib.pyplot as plt
 import networkx as nx
 import seaborn as sb
+from scipy.stats import binom
+from collections import Counter
+from operator import itemgetter
 
 class Network:
-    def __init__(self, n=0, c=0, p=0, SELF_EDGES=False):
+    def __init__(self, n=0, c=0, p=0, nr_steps=0, SELF_EDGES=False):
         self.G = nx.Graph()
+        self.nr_steps = nr_steps
         self.p = p
         self.c = c
         self.n = n              # Nodes
@@ -49,11 +54,9 @@ class Network:
             for j in range(1, int(self.c / 2) + 1):
                 if (i + j) > self.n - 1:
                     i = (i + j) - self.n
-                    self.adj_matrix[i, i + j] = 1
-                    self.adj_matrix[i + j, i] = 1
+                    self.add_edge(i, i + j)
                 else:
-                    self.adj_matrix[i, i + j] = 1
-                    self.adj_matrix[i + j, i] = 1
+                    self.add_edge(i, i + j)
                     
         if self.SELF_EDGES:
             np.fill_diagonal(self.adj_matrix, 2)
@@ -76,24 +79,65 @@ class Network:
         for i in range(len(v1)):
             self.G.add_edge(v1[i], v2[i])
 
-    def plot_graph(self, CIRCULAR=False):
+    def plot_graph(self, CIRCULAR=False, STEP=False):
         plt.figure()
         
         if CIRCULAR:
             plt.title('p = ' + str(self.p) + '      c = ' + str(self.c) + '      n = ' + str(self.n) + '     m = ' + str(self.m))
             nx.draw_circular(self.G)
+        elif STEP:
+            plt.title('p = ' + str(self.p) + '      c = ' + str(self.c) + '      n = ' + str(self.n) + '     m = ' + str(self.m) + 
+            '\nNumber of steps: ' + str(self.nr_steps))
+            nx.draw(self.G)
         else:
             plt.title('p = ' + str(self.p) + '      n = ' + str(self.n) + '     m = ' + str(self.m))
             nx.draw(self.G)
+
     
     def plot_degree_dist(self):
         degrees = [self.G.degree(n) for n in self.G.nodes()]
         plt.figure()
+        synth_data = binom.rvs(n=self.n * 2, p=self.p, loc=0, size=self.n)
+        sb.distplot(synth_data, kde=True, bins=50, label='Synthetic')
+        sb.distplot(sorted(degrees, reverse=True), kde=True, bins=50, label='Simulated')
         plt.xlabel('Degrees')
         plt.ylabel('Frequency')
         plt.title('Degree Distribution' + '\np = ' + str(self.p) + '      n = ' + str(self.n))
-        sb.distplot(sorted(degrees, reverse=True), kde=True, bins=20)
-        
+        plt.legend()
+    
+    def plot_cum_ddist(self):
+        d_seq = [self.G.degree(n) for n in self.G.nodes()]
+        max_deg = max(d_seq)
+        k = np.linspace(0, max(d_seq),max(d_seq))
+        power_dist = 2 * self.c ** 2 * k ** (1 - 3 ** 3)
+
+        degrees = np.array(d_seq)
+        d_list = []
+        for i in range(max(degrees)):
+            d_list.append(np.sum(degrees == i))
+        d_list = np.flip(d_list)    
+        d_cdf = np.flip(np.cumsum(d_list))
+        plt.figure()
+        plt.loglog(k, power_dist, label='Synthetic')
+        plt.plot(k, d_cdf, linestyle='none', marker='.', label = 'Simulated')
+        plt.title('p = ' + str(self.p) + '      c = ' + str(self.c) + '      n = ' + str(self.n) + '     m = ' + str(self.m) + 
+            '\nNumber of steps: ' + str(self.nr_steps))
+        plt.legend()
+
+
+    def step(self):
+        for i in range(self.nr_steps):
+            (row, col) = (np.zeros(self.n), np.zeros(self.n + 1))
+            adj_prob = np.divide(np.sum(self.adj_matrix, axis=0), np.sum(self.adj_matrix))
+            possible_choices = np.where(adj_prob)
+            index = np.random.choice(possible_choices[0].tolist(), self.c, p=adj_prob.tolist())
+            for i in index:
+                row[i] = 1
+                col[i] = 1
+            self.adj_matrix = np.vstack((self.adj_matrix, row))
+            self.adj_matrix = np.column_stack((self.adj_matrix, col))
+            self.n += 1
+
 def task1():
     erdos = Network(n=100, p=0.1, SELF_EDGES=False)
     erdos.initialize_erdos()
@@ -110,6 +154,19 @@ def task2():
     wattStrog.plot_graph(CIRCULAR=True)
     plt.show()
 
+def task3():
+    alberBasi = Network(n=2, p=0.1, c=5, nr_steps=1000)
+    alberBasi.add_edge(0, 1)
+    alberBasi.step()
+    alberBasi.build_graph()
+    alberBasi.plot_graph(STEP=True)
+    alberBasi.plot_cum_ddist()
+    plt.show()
+
+#def task4():
+    
+
 if __name__ == "__main__":
     #task1()
     #task2()
+    task3()

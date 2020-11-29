@@ -115,7 +115,7 @@ class Network:
     def plot_cum_ddist(self):
         d_seq = [self.G.degree(n) for n in self.G.nodes()]
         k = np.linspace(0, max(d_seq),max(d_seq))
-        power_dist = 2 * self.c ** 2 * k ** (1 - (3 ** 2))
+        power_dist = 2 * (self.c ** 2) * k ** (1 - 3)
 
         degrees = np.array(d_seq)
         d_list = []
@@ -189,7 +189,7 @@ def task2():
     plt.show()
 
 def task3():
-    alberBasi = Network(n=2, p=0.2, c=8, nr_steps=1000)
+    alberBasi = Network(n=2, p=0.1, c=8, nr_steps=1000)
     alberBasi.add_edge(0, 1)
     alberBasi.step()
     alberBasi.build_graph()
@@ -218,6 +218,6 @@ def task5():
 if __name__ == "__main__":
     #task1()
     #task2()
-    #task3()
+    task3()
     #task4()
-    task5()
+    #task5()

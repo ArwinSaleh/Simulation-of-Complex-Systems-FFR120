@@ -1,14 +1,11 @@
-from matplotlib.pyplot import sci
 import numpy as np
-from scipy.sparse import csr_matrix
 import math
-import random
 import matplotlib.pyplot as plt
 import networkx as nx
 import seaborn as sb
 from scipy.stats import binom
-from collections import Counter
-from operator import itemgetter
+from numpy import genfromtxt
+import pandas as pd
 
 class Network:
     def __init__(self, n=0, c=0, p=0, nr_steps=0, SELF_EDGES=False):
@@ -20,6 +17,10 @@ class Network:
         self.m = n * (n - 1)    # Edges
         self.adj_matrix = np.zeros((self.n, self.n))
         self.SELF_EDGES = SELF_EDGES
+    
+    def load_data(self):
+        example = genfromtxt('HW4/data/smallWorldExample.txt', delimiter=',')
+        self.adj_matrix = example
 
     def add_edge(self, v1, v2):
         if v1 != v2:
@@ -79,7 +80,7 @@ class Network:
         for i in range(len(v1)):
             self.G.add_edge(v1[i], v2[i])
 
-    def plot_graph(self, CIRCULAR=False, STEP=False):
+    def plot_graph(self, CIRCULAR=False, STEP=False, CLUSTER=False, PATH=False):
         plt.figure()
         
         if CIRCULAR:
@@ -88,6 +89,12 @@ class Network:
         elif STEP:
             plt.title('p = ' + str(self.p) + '      c = ' + str(self.c) + '      n = ' + str(self.n) + '     m = ' + str(self.m) + 
             '\nNumber of steps: ' + str(self.nr_steps))
+            nx.draw(self.G)
+        elif CLUSTER:
+            plt.title('smallWorldExample.txt' + '\nn = ' + str(self.n) + '     m = ' + str(self.m) + '\nClustering Coefficient = ' + str(self.c))
+            nx.draw(self.G)
+        elif PATH:
+            plt.title('smallWorldExample.txt' + '\nn = ' + str(self.n) + '     m = ' + str(self.m) + '\nAverage Path Length = ' + str(self.c))
             nx.draw(self.G)
         else:
             plt.title('p = ' + str(self.p) + '      n = ' + str(self.n) + '     m = ' + str(self.m))
@@ -107,9 +114,8 @@ class Network:
     
     def plot_cum_ddist(self):
         d_seq = [self.G.degree(n) for n in self.G.nodes()]
-        max_deg = max(d_seq)
         k = np.linspace(0, max(d_seq),max(d_seq))
-        power_dist = 2 * self.c ** 2 * k ** (1 - 3 ** 3)
+        power_dist = 2 * self.c ** 2 * k ** (1 - (3 ** 2))
 
         degrees = np.array(d_seq)
         d_list = []
@@ -119,11 +125,39 @@ class Network:
         d_cdf = np.flip(np.cumsum(d_list))
         plt.figure()
         plt.loglog(k, power_dist, label='Synthetic')
-        plt.plot(k, d_cdf, linestyle='none', marker='.', label = 'Simulated')
+        plt.loglog(k, d_cdf, linestyle='none', marker='.', label = 'Simulated')
+        plt.xlabel('Degree')
+        plt.ylabel('cCDF')
         plt.title('p = ' + str(self.p) + '      c = ' + str(self.c) + '      n = ' + str(self.n) + '     m = ' + str(self.m) + 
             '\nNumber of steps: ' + str(self.nr_steps))
         plt.legend()
 
+    def compute_clustering_coefficient(self):
+        adj_3 = np.dot(np.dot(self.adj_matrix, self.adj_matrix), self.adj_matrix)
+
+        self.n = np.sum(self.adj_matrix, axis=1)
+        nr_triangles = np.trace(adj_3) // 6
+        nr_connected_triples = sum(self.n * (self.n - 1) / 2)
+        self.n = len(self.adj_matrix)
+        self.m = np.sum(self.adj_matrix[np.where(self.adj_matrix==1)])
+        
+        clustering_coefficient = 3 * nr_triangles / nr_connected_triples
+        return round(clustering_coefficient, 6)
+
+    def compute_path_diameter(self):
+        self.n = len(self.adj_matrix)
+        path_lengths = np.zeros((self.n, self.n))
+        for i in range(self.n):
+            path = np.where(np.power(self.adj_matrix, i) > 0)
+            for x, y in zip(path[0], path[1]):
+                if x != y:
+                    if path_lengths[x, y] == 0:
+                        path_lengths[x, y] = 1
+                        path_lengths[y, x] = 1
+        self.m = self.n * (self.n - 1)
+        avg_path_length = np.sum(path_lengths) / (self.m)
+        path_diameter = np.max(path_lengths)
+        return (avg_path_length, path_diameter)
 
     def step(self):
         for i in range(self.nr_steps):
@@ -147,7 +181,7 @@ def task1():
     plt.show()
 
 def task2():
-    wattStrog = Network(n=20, p=0.1, c=5)
+    wattStrog = Network(n=20, p=0.1, c=4)
     wattStrog.init_small_world()
     wattStrog.add_shortcuts()
     wattStrog.build_graph()
@@ -155,7 +189,7 @@ def task2():
     plt.show()
 
 def task3():
-    alberBasi = Network(n=2, p=0.1, c=5, nr_steps=1000)
+    alberBasi = Network(n=2, p=0.2, c=8, nr_steps=1000)
     alberBasi.add_edge(0, 1)
     alberBasi.step()
     alberBasi.build_graph()
@@ -163,10 +197,27 @@ def task3():
     alberBasi.plot_cum_ddist()
     plt.show()
 
-#def task4():
-    
+def task4():
+    net = Network()
+    net.load_data()
+    #net.init_small_world()
+    net.build_graph()
+    net.c = net.compute_clustering_coefficient()   # Using c as a temporary variable
+    net.plot_graph(LOAD=True)
+    plt.show()
+
+def task5():
+    net = Network()
+    net.load_data()
+    #net.init_small_world()
+    net.build_graph()
+    (net.c, diameter) = net.compute_path_diameter()   # Using c as a temporary variable
+    net.plot_graph(CLUSTER=True)
+    plt.show()
 
 if __name__ == "__main__":
     #task1()
     #task2()
-    task3()
+    #task3()
+    #task4()
+    task5()

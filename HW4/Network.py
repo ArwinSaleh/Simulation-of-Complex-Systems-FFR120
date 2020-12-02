@@ -72,6 +72,7 @@ class Network:
             if r < self.p:
                 j = (np.random.randint(self.n), np.random.randint(self.n))
                 self.adj_matrix[j[0], j[1]] = 1
+        self.m = np.sum(self.adj_matrix[np.where(self.adj_matrix==1)])
 
     def build_graph(self):
         v1 = np.where(self.adj_matrix == 1)[0]
@@ -142,6 +143,7 @@ class Network:
         self.m = np.sum(self.adj_matrix[np.where(self.adj_matrix==1)])
         
         clustering_coefficient = 3 * nr_triangles / nr_connected_triples
+        self.m = np.sum(self.adj_matrix[np.where(self.adj_matrix==1)])
         return round(clustering_coefficient, 6)
 
     def compute_path_diameter(self):
@@ -171,6 +173,7 @@ class Network:
             self.adj_matrix = np.vstack((self.adj_matrix, row))
             self.adj_matrix = np.column_stack((self.adj_matrix, col))
             self.n += 1
+        self.m = np.sum(self.adj_matrix[np.where(self.adj_matrix==1)])
 
 def task1():
     erdos = Network(n=100, p=0.1, SELF_EDGES=False)
@@ -181,7 +184,7 @@ def task1():
     plt.show()
 
 def task2():
-    wattStrog = Network(n=20, p=0.1, c=4)
+    wattStrog = Network(n=20, p=0.1, c=8)
     wattStrog.init_small_world()
     wattStrog.add_shortcuts()
     wattStrog.build_graph()
@@ -203,7 +206,7 @@ def task4():
     #net.init_small_world()
     net.build_graph()
     net.c = net.compute_clustering_coefficient()   # Using c as a temporary variable
-    net.plot_graph(LOAD=True)
+    net.plot_graph(PATH=True)
     plt.show()
 
 def task5():
@@ -216,8 +219,8 @@ def task5():
     plt.show()
 
 if __name__ == "__main__":
-    task1()
+    #task1()
     #task2()
     #task3()
     #task4()
-    #task5()
+    task5()

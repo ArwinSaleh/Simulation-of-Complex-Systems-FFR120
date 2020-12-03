@@ -95,7 +95,7 @@ class Network:
             plt.title('smallWorldExample.txt' + '\nn = ' + str(self.n) + '     m = ' + str(self.m) + '\nClustering Coefficient = ' + str(self.c))
             nx.draw(self.G)
         elif PATH:
-            plt.title('smallWorldExample.txt' + '\nn = ' + str(self.n) + '     m = ' + str(self.m) + '\nAverage Path Length = ' + str(self.c))
+            plt.title('smallWorldExample.txt' + '\nn = ' + str(self.n) + '     m = ' + str(self.m) + '\nAverage Path Length = ' + str(self.c) + ', Diameter = ' + str(self.p))
             nx.draw(self.G)
         else:
             plt.title('p = ' + str(self.p) + '      n = ' + str(self.n) + '     m = ' + str(self.m))
@@ -150,16 +150,18 @@ class Network:
         self.n = len(self.adj_matrix)
         path_lengths = np.zeros((self.n, self.n))
         for i in range(self.n):
-            path = np.where(np.power(self.adj_matrix, i) > 0)
+            path = np.where(np.linalg.matrix_power(self.adj_matrix, i) > 0)
             for x, y in zip(path[0], path[1]):
                 if x != y:
                     if path_lengths[x, y] == 0:
-                        path_lengths[x, y] = 1
-                        path_lengths[y, x] = 1
+                        path_lengths[x, y] = i
+                        path_lengths[y, x] = i
+
         self.m = self.n * (self.n - 1)
-        avg_path_length = np.sum(path_lengths) / (self.m)
+        avg_path_length = np.sum(path_lengths) / self.m
         path_diameter = np.max(path_lengths)
-        return (avg_path_length, path_diameter)
+        self.m = np.sum(self.adj_matrix[np.where(self.adj_matrix==1)])
+        return (round(avg_path_length, 5), path_diameter)
 
     def step(self):
         for i in range(self.nr_steps):
@@ -206,7 +208,7 @@ def task4():
     #net.init_small_world()
     net.build_graph()
     net.c = net.compute_clustering_coefficient()   # Using c as a temporary variable
-    net.plot_graph(PATH=True)
+    net.plot_graph(CLUSTER=True)
     plt.show()
 
 def task5():
@@ -214,8 +216,8 @@ def task5():
     net.load_data()
     #net.init_small_world()
     net.build_graph()
-    (net.c, diameter) = net.compute_path_diameter()   # Using c as a temporary variable
-    net.plot_graph(CLUSTER=True)
+    (net.c, net.p) = net.compute_path_diameter()   # Using c as a temporary variable
+    net.plot_graph(PATH=True)
     plt.show()
 
 if __name__ == "__main__":
